@@ -6,10 +6,10 @@ A Trim-Sheet Workflow Plugin For Blender
 ### Prerequisites  
 - Blender 2.80 or later 
 ### Installation
-- Download the zip folder
-- Open Blender
+- Download the ZIP folder
+- Launch Blender
 - Go to __Preferences__ -> __Add-ons__
-- Click on the top-right dropdown, choose _Install from Disk..._
-- Navigate to the zip folder and click __Install from Disk__
+- Click the top-right dropdown menu and select _Install from Disk..._
+- Locate the ZIP folder and select __Install from Disk__
 ### Usage
 To be determined
