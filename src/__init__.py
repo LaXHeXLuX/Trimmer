@@ -10,19 +10,21 @@ bl_info = {
 
 import bpy
 from . import ui
+from . import trimmer
 
 def register():
     bpy.utils.register_class(ui.AbstractOperator)
     bpy.utils.register_class(ui.TrimmerSettings)
     bpy.utils.register_class(ui.TrimmerUI)
+    bpy.utils.register_class(trimmer.Trim)
+    bpy.types.Scene.trim_collection = bpy.props.CollectionProperty(type=trimmer.Trim)
 
 def unregister():
     bpy.utils.unregister_class(ui.AbstractOperator)
     bpy.utils.unregister_class(ui.TrimmerSettings)
     bpy.utils.unregister_class(ui.TrimmerUI)
+    del bpy.types.Scene.trim_collection
+    bpy.utils.unregister_class(trimmer.Trim)
 
-
-# This allows you to run the script directly from Blender's Text editor
-# to test the add-on without having to install it.
 if __name__ == "__main__":
     register()

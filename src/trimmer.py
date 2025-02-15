@@ -2,10 +2,6 @@ import bpy
 import bmesh
 
 class Trimmer():
-    #image_path = ""
-    trims = {}
-    uv_coords = ""
-
     @staticmethod
     def compact_points(points):
         def is_collinear(p1, p2, p3):
@@ -55,9 +51,6 @@ class Trimmer():
         face = selected_faces[0]
         cls.uv_coords = cls.compact_points([loop[uv_layer].uv.copy() for loop in face.loops])
 
-        operator.report({'INFO'}, f"Coords before: {[loop[uv_layer].uv.copy() for loop in face.loops]}")
-        operator.report({'INFO'}, f"Coords after: {cls.uv_coords}")
-
         # Save image path
         if obj.active_material and obj.active_material.use_nodes:
             nodes = obj.active_material.node_tree.nodes
@@ -78,6 +71,7 @@ class Trimmer():
 
     @classmethod
     def apply_texture(cls, context, operator):
+        # TODO - make this better to suit many trim setup
         if not cls.uv_coords:
             operator.report({'ERROR'}, "No UV data saved! Use 'Set Texture' first.")
             return
@@ -147,10 +141,48 @@ class Trimmer():
 
         operator.report({'INFO'}, "UV coordinates and texture applied!")
 
-class Trim():
-    def __init__(self, uv_coords):
-        self.uv_coords = compact_points(uv_coords)
+    @staticmethod
+    def uv_coords(context, operator):
+        # Run checks
+        obj = context.object
+        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
+            operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
+            return False
 
+        bm = bmesh.from_edit_mesh(obj.data)
+        uv_layer = bm.loops.layers.uv.active
+        if not uv_layer:
+            operator.report({'ERROR'}, "The object does not have an active UV map!")
+            return False
+
+        selected_faces = [face for face in bm.faces if face.select]
+        if not selected_faces:
+            operator.report({'ERROR'}, "No face selected!")
+            return False
+
+        # Save UV coordinates
+        face = selected_faces[0]
+        return [loop[uv_layer].uv.copy() for loop in face.loops]
+
+    @classmethod
+    def add_trim(cls, context, operator):
+        uv_coords = cls.uv_coords(context, operator)
+        if not uv_coords: 
+            return
+
+        trim = context.scene.trim_collection.add()
+        trim.__init__(uv_coords)
+        
+    @classmethod
+    def delete_trim(cls, context, operator):
+        context.scene.trim_collection.remove(operator.index)
+
+class Trim(bpy.types.PropertyGroup):
+    def __init__(self, uv_coords):
+        self.name = "NewTrim"
+        self.uv_coords = self.compact_points(uv_coords)
+
+    @staticmethod
     def compact_points(points):
         def is_collinear(p1, p2, p3):
             return (p2[0] - p1[0]) * (p3[1] - p2[1]) == (p2[1] - p1[1]) * (p3[0] - p2[0])
