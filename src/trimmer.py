@@ -61,11 +61,13 @@ class Trimmer():
         # Save image path
         if obj.active_material and obj.active_material.use_nodes:
             nodes = obj.active_material.node_tree.nodes
+            found_image_node = False
             for node in nodes:
                 if node.type == 'TEX_IMAGE' and node.image:
+                    found_image_node = True
                     cls.image_path = node.image.filepath
                     break
-            else:
+            if not found_image_node:
                 cls.image_path = ""
                 operator.report({'WARNING'}, "No texture image found!")
         else:
