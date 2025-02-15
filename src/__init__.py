@@ -14,12 +14,12 @@ from . import ui
 def register():
     bpy.utils.register_class(ui.AbstractOperator)
     bpy.utils.register_class(ui.TrimmerSettings)
-    bpy.utils.register_class(ui.Trimmer)
+    bpy.utils.register_class(ui.TrimmerUI)
 
 def unregister():
     bpy.utils.unregister_class(ui.AbstractOperator)
     bpy.utils.unregister_class(ui.TrimmerSettings)
-    bpy.utils.unregister_class(ui.Trimmer)
+    bpy.utils.unregister_class(ui.TrimmerUI)
 
 
 # This allows you to run the script directly from Blender's Text editor
