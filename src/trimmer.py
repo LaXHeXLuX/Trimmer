@@ -92,8 +92,6 @@ class Trim(bpy.types.PropertyGroup):
     def init(self, uv_coords):
         self.name = "NewTrim"
         self.set_uv_coords(self.compact_points(uv_coords))
-        print(f"Trim init: self.name - {self.name}")
-        print(f"Trim init: self.uv_coords - {self.uv_coords}")
 
     def __init__(self, uv_coords):
         self.init(uv_coords)
