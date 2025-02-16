@@ -1,5 +1,6 @@
 import bpy
 import bmesh
+import math
 
 class Trimmer():
     @classmethod
@@ -110,21 +111,55 @@ class Trim(bpy.types.PropertyGroup):
         return (p2[0] - p1[0]) * (p3[1] - p2[1]) == (p2[1] - p1[1]) * (p3[0] - p2[0])
 
     @staticmethod
-    def compact_points(points):
+    def point_is_collinear(points, index):
+        # Get the three points to check
+        p1 = points[(index - 1) % len(points)]  # Previous point (wrap around using modulo)
+        p2 = points[index]
+        p3 = points[(index + 1) % len(points)]  # Next point (wrap around using modulo)
 
+        # Include the point if it's not collinear with its neighbors
+        return Trim.is_collinear(p1, p2, p3)
+
+    @staticmethod
+    def compact_points(points):
         if len(points) < 3:
             return points
 
         compacted = []
 
         for i in range(len(points)):
-            # Get the three points to check
-            p1 = points[(i - 1) % len(points)]  # Previous point (wrap around using modulo)
-            p2 = points[i]
-            p3 = points[(i + 1) % len(points)]  # Next point (wrap around using modulo)
-
-            # Include the point if it's not collinear with its neighbors
-            if not Trim.is_collinear(p1, p2, p3):
+            if not Trim.point_is_collinear(points, i):
                 compacted.append(p2)
-
+        
         return compacted
+
+    @staticmethod
+    def get_uv_coords_for_face(uv_coords, face):
+        not_collinear_indexes = []
+        collinear_indexes = []
+
+        for i in range(len(face)):
+            if Trim.point_is_collinear(face, i):
+                collinear_indexes.append(i)
+            else:
+                not_collinear_indexes.append(i)
+
+        for i in collinear_indexes:
+            # Get previous non-collinear neighbour
+            prevIndex = 0
+            while not_collinear_indexes[prevIndex] < i:
+                prevIndex = (prevIndex + 1) % len(not_collinear_indexes)
+            prevIndex -= 1
+            prevI = not_collinear_indexes[prevIndex]
+
+            # Get next non-collinear neighbour
+            nextIndex = 0
+            while not_collinear_indexes[nextIndex] < i:
+                nextIndex = (nextIndex + 1) % len(not_collinear_indexes)
+            nextI = not_collinear_indexes[nextIndex]
+
+            dist1 = math.dist(face[prevI], face[i])
+            dist2 = math.dist(face[i], face[nextI])
+            
+            uv_dist = math.dist(uv_coords[prevIndex], uv_coords[nextIndex])
+
