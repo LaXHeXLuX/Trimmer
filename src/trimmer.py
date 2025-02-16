@@ -8,19 +8,8 @@ class Trimmer():
 
     @classmethod
     def apply_texture(cls, context, operator):
-        trim = context.scene.trim_collection[operator.index]
-        if not trim:
-            operator.report({'ERROR'}, "Trim is null!")
-            return
-
-        uv_coords = trim.get_uv_coords()
-
-        if not uv_coords:
-            operator.report({'ERROR'}, "No UV data saved on this Trim!")
-            return
-
         obj = context.object
-        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
+        if (not obj) or obj.type != 'MESH' or obj.mode != 'EDIT':
             operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
             return
 
@@ -33,6 +22,11 @@ class Trimmer():
         selected_faces = [face for face in bm.faces if face.select]
         if not selected_faces:
             operator.report({'ERROR'}, "No face selected!")
+            return
+
+        trim = context.scene.trim_collection[operator.index]
+        if not trim:
+            operator.report({'ERROR'}, "Trim is null!")
             return
 
         face = selected_faces[0]
