@@ -8,7 +8,7 @@ A Trim-Sheet Workflow Plugin For Blender
 ### Installation
 - Download the ZIP folder
 - Launch Blender
-- Go to __Preferences__ -> __Add-ons__
+- Go to __Edit__ ->__Preferences__ -> __Add-ons__
 - Click the top-right dropdown menu and select _Install from Disk..._
 - Locate the ZIP folder and select __Install from Disk__
 ### Usage
