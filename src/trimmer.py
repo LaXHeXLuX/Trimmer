@@ -129,7 +129,7 @@ class Trim(bpy.types.PropertyGroup):
 
         for i in range(len(points)):
             if not Trim.point_is_collinear(points, i):
-                compacted.append(p2)
+                compacted.append(points[i])
         
         return compacted
 
