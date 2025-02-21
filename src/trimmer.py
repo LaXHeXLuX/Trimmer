@@ -33,10 +33,13 @@ class Trimmer():
         if trim is None:
             operator.report({'ERROR'}, "Trim is null!")
             return
+        
+        # Get adjusted UV coordinates
+        face_coords = [loop.vert.co for loop in face.loops]
+        uv_coords = Trim.get_uv_coords_for_face(trim.get_uv_coords(), face_coords)
 
-        face = selected_faces[0]
         if len(face.loops) != len(uv_coords):
-            operator.report({'ERROR'}, f"Selected face ({len(face.loops)} vertices) must have the same number of vertices as the saved face ({len(trim.uv_coords)} vertices)!")
+            operator.report({'ERROR'}, f"Selected face ({len(face.loops)} vertices) must have the same number of vertices as the saved face ({len(uv_coords)} vertices)!")
             return
 
         # Apply UV coordinates
@@ -45,8 +48,8 @@ class Trimmer():
 
         bmesh.update_edit_mesh(obj.data)
 
-    @staticmethod
-    def uv_coords(context, operator):
+    @classmethod
+    def add_trim(cls, context, operator):
         # Run checks
         obj = context.object
         if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
@@ -65,14 +68,8 @@ class Trimmer():
             return False
             
         face = selected_faces[0]
-        return [loop[uv_layer].uv.copy() for loop in face.loops]
 
-    @classmethod
-    def add_trim(cls, context, operator):
-        uv_coords = cls.uv_coords(context, operator)
-        if not uv_coords: 
-            return
-
+        uv_coords = [loop[uv_layer].uv.copy() for loop in face.loops]
         trim = context.scene.trim_collection.add()
         trim.init(uv_coords)
 
@@ -170,32 +167,59 @@ class Trim(bpy.types.PropertyGroup):
         return compacted
 
     @staticmethod
-    def get_uv_coords_for_face(uv_coords, face):
-        not_collinear_indexes = []
-        collinear_indexes = []
+    def get_uv_coords_for_face(uv_coords, face_coords):
+        noncollinear_indexes = []
+        collinear_indexes_neighbours = []
+        collinearity = []
 
-        for i in range(len(face)):
-            if Trim.point_is_collinear(face, i):
-                collinear_indexes.append(i)
+        # Sort points by collinearity
+        for i in range(len(face_coords)):
+            if Trim.point_is_collinear(face_coords, i):
+                collinearity.append(True)
             else:
-                not_collinear_indexes.append(i)
+                collinearity.append(False)
+                noncollinear_indexes.append(i)
 
-        for i in collinear_indexes:
-            # Get previous non-collinear neighbour
-            prevIndex = 0
-            while not_collinear_indexes[prevIndex] < i:
-                prevIndex = (prevIndex + 1) % len(not_collinear_indexes)
-            prevIndex -= 1
-            prevI = not_collinear_indexes[prevIndex]
+        new_uv_coords = []
+        for coord in uv_coords:
+            new_uv_coords.append(coord)
 
-            # Get next non-collinear neighbour
-            nextIndex = 0
-            while not_collinear_indexes[nextIndex] < i:
-                nextIndex = (nextIndex + 1) % len(not_collinear_indexes)
-            nextI = not_collinear_indexes[nextIndex]
+        if len(noncollinear_indexes) == len(collinearity):
+            return new_uv_coords
 
-            dist1 = math.dist(face[prevI], face[i])
-            dist2 = math.dist(face[i], face[nextI])
+        # Find each point's noncollinear neighbours
+        noncollinear_neighbours = []
+        prevI = len(noncollinear_indexes)-1
+        nextI = 0
+        for i in range(len(face_coords)):
+            if not collinearity[i]:
+                nextI = (nextI + 1) % len(noncollinear_indexes)
+                noncollinear_neighbours.append([prevI, nextI])
+                prevI = (prevI + 1) % len(noncollinear_indexes)
+            else:
+                noncollinear_neighbours.append([prevI, nextI])
+
+        inserted = 0
+        firstEdge = True
+        for i in range(len(face_coords)):
+            prevI, nextI = noncollinear_neighbours[i]
+            if nextI != 0: 
+                firstEdge = False
             
-            uv_dist = math.dist(uv_coords[prevIndex], uv_coords[nextIndex])
+            if not collinearity[i]:
+                continue
 
+            smallDist = math.dist(face_coords[noncollinear_indexes[prevI]], face_coords[i])
+            fullDist = math.dist(face_coords[noncollinear_indexes[prevI]], face_coords[noncollinear_indexes[nextI]])
+
+            uv_vector = uv_coords[nextI] - uv_coords[prevI]
+
+            newPoint = uv_coords[prevI] + uv_vector * (smallDist / fullDist)
+            index = (prevI + inserted + 1)
+            if firstEdge and index == len(new_uv_coords): index = inserted
+
+            new_uv_coords.insert(index, newPoint)
+
+            inserted += 1
+
+        return new_uv_coords
