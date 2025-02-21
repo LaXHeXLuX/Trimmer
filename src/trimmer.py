@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 import math
+from mathutils import Vector
 
 class Trimmer():
     @classmethod
@@ -82,6 +83,9 @@ class Trimmer():
 class UVCoord(bpy.types.PropertyGroup):
     uv: bpy.props.FloatVectorProperty(size=2)
 
+    def get_vector(self):
+        return Vector(self.uv)
+
 class Trim(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
     uv_coords: bpy.props.CollectionProperty(type=UVCoord)
@@ -98,13 +102,13 @@ class Trim(bpy.types.PropertyGroup):
         
         for coord in uv_coords:
             uv_coord_item = self.uv_coords.add()
-            uv_coord_item.uv = coord
+            uv_coord_item.uv = coord.copy()
 
     def get_uv_coords(self):
         arr = []
 
         for coord in self.uv_coords:
-            arr.append(coord.uv)
+            arr.append(coord.get_vector())
         
         return arr
 
