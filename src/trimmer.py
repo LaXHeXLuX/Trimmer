@@ -9,24 +9,27 @@ class Trimmer():
 
     @classmethod
     def apply_texture(cls, context, operator):
+        # Run checks
         obj = context.object
-        if (not obj) or obj.type != 'MESH' or obj.mode != 'EDIT':
+        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
             operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
             return
 
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.active
-        if not uv_layer:
+        if uv_layer is None:
             operator.report({'ERROR'}, "The object does not have an active UV map!")
             return
 
         selected_faces = [face for face in bm.faces if face.select]
-        if not selected_faces:
+        if selected_faces is None or selected_faces == []:
             operator.report({'ERROR'}, "No face selected!")
             return
+            
+        face = selected_faces[0]
 
         trim = context.scene.trim_collection[operator.index]
-        if not trim:
+        if trim is None:
             operator.report({'ERROR'}, "Trim is null!")
             return
 
@@ -51,16 +54,15 @@ class Trimmer():
 
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.active
-        if not uv_layer:
+        if uv_layer is None:
             operator.report({'ERROR'}, "The object does not have an active UV map!")
             return False
 
         selected_faces = [face for face in bm.faces if face.select]
-        if not selected_faces:
+        if selected_faces is None or selected_faces == []:
             operator.report({'ERROR'}, "No face selected!")
             return False
-
-        # Save UV coordinates
+            
         face = selected_faces[0]
         return [loop[uv_layer].uv.copy() for loop in face.loops]
 
