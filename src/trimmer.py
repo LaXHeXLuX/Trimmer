@@ -112,9 +112,39 @@ class Trim(bpy.types.PropertyGroup):
         
         return arr
 
+    @staticmethod 
+    def compare(x1, x2):
+        EPSILON = 1e-6
+        difference = x1-x2
+        if abs(difference) < EPSILON:
+            return 0
+        if difference < -EPSILON:
+            return -1
+        if difference > EPSILON:
+            return 1
+        raise ArithmeticError(f"Values {x1}, {x2} don't respond to our laws of math!")
+
+    @staticmethod
+    def vectorAreEqual(v1, v2):
+        if len(v1) != len(v2):
+            return False
+
+        for i in range(len(v1)):
+            if Trim.compare(v1[i], v2[i]) != 0:
+                return False
+        
+        return True
+
     @staticmethod
     def is_collinear(p1, p2, p3):
-        return (p2[0] - p1[0]) * (p3[1] - p2[1]) == (p2[1] - p1[1]) * (p3[0] - p2[0])
+        v1 = p2 - p1
+        v2 = p3 - p2
+
+        for i in range(len(v1)):
+            if v1[i] != 0 or v2[i] != 0:
+                return Trim.vectorAreEqual(v1 * v2[i], v2 * v1[i])
+
+        return Trim.vectorAreEqual(scaled_v1, scaled_v2)
 
     @staticmethod
     def point_is_collinear(points, index):
