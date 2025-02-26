@@ -145,12 +145,10 @@ class Trim(bpy.types.PropertyGroup):
 
     @staticmethod
     def point_is_collinear(points, index):
-        # Get the three points to check
-        p1 = points[(index - 1) % len(points)]  # Previous point (wrap around using modulo)
+        p1 = points[(index - 1) % len(points)]
         p2 = points[index]
-        p3 = points[(index + 1) % len(points)]  # Next point (wrap around using modulo)
+        p3 = points[(index + 1) % len(points)]
 
-        # Include the point if it's not collinear with its neighbors
         return Trim.is_collinear(p1, p2, p3)
 
     @staticmethod

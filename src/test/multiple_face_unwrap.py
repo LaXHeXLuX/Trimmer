@@ -166,14 +166,6 @@ def vertexIndexIncreasing(f1Index, f2Index, face1Increasing, graph):
     f1EdgeValues = (f1[f1Edge[0]], f1[f1Edge[1]])
     f2EdgeValues = (f2[f2Edge[0]], f2[f2Edge[1]])
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
-    """
-    f1edge = graph[f1Index][f2Index]
-    f2edge = graph[f2Index][f1Index]
-
-    f1Increasing = indexIncreasing(f1edge[0], f1edge[1])
-    f2Increasing = indexIncreasing(f2edge[0], f2edge[1])
-
-    return f1Increasing ^ face1Increasing ^ f2Increasing"""
 
 def moveFace(face, vector):
     newFace = []

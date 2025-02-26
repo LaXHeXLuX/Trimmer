@@ -17,7 +17,6 @@ def normalise(arr):
     return newArr
 
 def mvcPointOnVertex(n, index):
-    #print(f"mvcPointOnVertex({n}, {index})")
     arr = []
     for i in range(n):
         arr.append(float(0))
@@ -25,7 +24,6 @@ def mvcPointOnVertex(n, index):
     return arr
 
 def mvcPointOnEdgeWeight(n, distance1, distance2, index1):
-    #print(f"mvcPointOnEdgeWeight({n}, {distance1}, {distance2}, {index1})")
     arr = []
     index2 = (index1 + 1) % n
     dist = distance1 + distance2
@@ -109,16 +107,21 @@ def roundList(arr):
             newArr.append(roundList(a))
     return newArr
 
-polygon = [(0, 0), (4, -0.5), (8, -1), (11, 0), (11, 3), (9, 3), (8, 5), (6, 5), (5, 3), (3, 3), (2, 5), (0, 5), (-1, 3)]
-points = [(2, 4), (1, 2), (4, 1), (8, 1)]
+polygon = [(0, 0), (0, 3), (10, 3), (10, 2), (1, 2), (1, 1), (10, 1), (10, 0)]
+points = [(0.5, 1.5), (0.5, 2.5), (5, 0.8), (5, 2.2)]
 
-mvcWeights = mvcWeights(polygon, points)
+weights = mvcWeights(polygon, points)
 print(f"MVC Weights for points:")
-for i in range(len(mvcWeights)):
-    print(f"{roundList(points[i])}: {roundList(mvcWeights[i])}")
+for i in range(len(weights)):
+    print(f"{roundList(points[i])}: {roundList(weights[i])}")
 
-newPolygon = [(0, 0), (4, 0), (8, 0), (11, 0), (10, 2), (9.5, 3.5), (8, 5), (6.4, 5), (4.8, 5), (3.2, 5), (1.6, 5), (0, 5), (0, 3)]
+newPolygon = [(0, 0), (0, 10), (10, 10), (10, 9), (1, 9), (1, 1), (10, 1), (10, 0)]
 
-newPositions = applyMvcWeights(newPolygon, mvcWeights)
+newPositions = applyMvcWeights(newPolygon, weights)
 rounded = roundList(newPositions)
 print(f"Rounded points: {rounded}")
+
+weights = mvcWeights(newPolygon, newPositions)
+print(f"MVC Weights for points:")
+for i in range(len(weights)):
+    print(f"{roundList(newPositions[i])}: {roundList(weights[i])}")
