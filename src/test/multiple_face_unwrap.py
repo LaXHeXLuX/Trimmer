@@ -197,11 +197,11 @@ def unwrap(mesh):
 
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex = stack.pop()
-        print(f"new loop. stack size: {len(stack)}")
-        print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
+        #print(f"new loop. stack size: {len(stack)}")
+        #print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
 
         if neighbourIndex in mappedBy[index]:
-            print(f"{index} already mapped from {neighbourIndex}")
+            #print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
@@ -209,7 +209,7 @@ def unwrap(mesh):
                 continue
             neighbourIndexIncreasing = vertexIndexIncreasing(index, i, indexIncreasing, graph)
             stack.append((i, neighbourIndexIncreasing, index))
-            print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
+            #print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = Face(copy.deepcopy(mesh[index]))
         rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).getNumpyVertices()
@@ -232,6 +232,10 @@ def unwrap(mesh):
     
     return mappedFaces
 
+
+import time
+start = time.time()
+
 mesh = [
     [[0, 0, 0], [2, 0, 0], [0, 0, 2], [-2, 0, 2]],
     [[-2, 0, 2], [-2, -1, 3], [0, -1, 3], [0, 0, 2]],
@@ -244,3 +248,6 @@ unwrapped = unwrap(mesh)
 
 for face in unwrapped:
     print(face)
+
+end = time.time()
+print(f"Time: {end - start} s")
