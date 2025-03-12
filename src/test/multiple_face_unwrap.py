@@ -62,6 +62,18 @@ def deepCompare(a1, a2):
     except:
         return compare(a1, a2)
 
+def deepToList(arr):
+    try:
+        arrToList = []
+        for a in arr:
+            try:
+                arrToList.append(a.tolist())
+            except:
+                arrToList.append(deepToList(a))
+        return arrToList
+    except:
+        return arr
+
 def rotationMatrixToFlattenFace(face, indexIncreasing):
     normal1 = faceNormal(face, indexIncreasing)
     normal2 = np.array([0, 0, 1])
@@ -147,18 +159,7 @@ def graphOfFaces(mesh):
     
     return graphMatrix
 
-def indexIncreasing(i1, i2):
-    if i2 - i1 == 1:
-        return True
-    if i1 - i2 == 1:
-        return False
-    if i2 == 0:
-        return True
-    if i1 == 0:
-        return False
-    raise Exception(f"Illegal arguments: {i1}, {i2}")
-
-def vertexIndexIncreasing(f1Index, f2Index, face1Increasing, graph):
+def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     f1 = mesh[f1Index]
     f2 = mesh[f2Index]
     f1Edge = graph[f1Index][f2Index]
@@ -167,17 +168,50 @@ def vertexIndexIncreasing(f1Index, f2Index, face1Increasing, graph):
     f2EdgeValues = (f2[f2Edge[0]], f2[f2Edge[1]])
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
 
-def moveFace(face, vector):
+def translationRotationMatrix(o1, o2, t1, t2):
+    vectorO = o1 - o2
+    vectorT = t1 - t2
+
+    cos_theta = np.dot(vectorO, vectorT) / (np.linalg.norm(vectorO) * np.linalg.norm(vectorT))
+    sin_theta = np.sqrt(1 - cos_theta**2)
+
+    R = np.array([
+        [cos_theta, -sin_theta],
+        [sin_theta,  cos_theta]
+    ])
+
+    T = np.eye(3)
+    T[:2, :2] = R
+    T[:2, 2] = t1 - o1
+
+    return T
+
+def padPoints(points, length):
+    newPoints = []
+    for point in points:
+        newPoint = []
+        i = 0
+        while len(newPoint) < length:
+            if i < len(point):
+                newPoint = np.append(newPoint, point[i])
+            else:   
+                newPoint = np.append(newPoint, 1)
+            i += 1
+        newPoints.append(newPoint)
+    return newPoints
+
+def transformFace(face, matrix):
+    paddedFace = padPoints(face, len(matrix[0]))
     newFace = []
-    for vertex in face:
-        newFace.append(vertex + vector)
-    return newFace
+    for vertex in paddedFace:
+        newFace.append(matrix @ vertex)
+    return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
-    print("unwrap. mesh:")
-    for f in mesh:
-        print(f)
-    print()
+    #print("unwrap. mesh:")
+    #for f in mesh:
+    #    print(f)
+    #print()
 
     import copy
 
@@ -191,9 +225,10 @@ def unwrap(mesh):
     stack = []
     stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
     
-    for i in range(len(graph)):
-        print(graph[i])
-    print()
+    #print("graph:")
+    #for i in range(len(graph)):
+    #    print(graph[i])
+    #print()
 
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex = stack.pop()
@@ -205,49 +240,69 @@ def unwrap(mesh):
             continue
 
         for i in range(len(graph[index])):
-            if graph[index][i] == None:
+            if graph[index][i] == None or i == neighbourIndex:
                 continue
-            neighbourIndexIncreasing = vertexIndexIncreasing(index, i, indexIncreasing, graph)
+            neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
             stack.append((i, neighbourIndexIncreasing, index))
             #print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = Face(copy.deepcopy(mesh[index]))
         rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).getNumpyVertices()
+        rotatedFace = padPoints(rotatedFace, 2)
+        #print(f"rotatedFace {index}: {rotatedFace}")
 
-        vector = -1 * rotatedFace[0]
+        origin1 = rotatedFace[0]
+        origin2 = rotatedFace[1]
+        target1 = rotatedFace[0]
+        target2 = rotatedFace[1]
         if neighbourIndex != None:
-            origin = rotatedFace[graph[index][neighbourIndex][0]]
-            target = mappedFaces[neighbourIndex][graph[neighbourIndex][index][0]]
-            vector = np.array(target) - np.array(origin)
+            origin1 = rotatedFace[graph[index][neighbourIndex][0]]
+            origin2 = rotatedFace[graph[index][neighbourIndex][1]]
+            target1 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][0]]
+            target2 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][1]]
+            if indexIncreasing:
+                target1, target2 = target2, target1
         
-        movedFace = moveFace(rotatedFace, vector)
+        matrix = translationRotationMatrix(origin1, origin2, target1, target2)
+        #print(f"matrix:\n{matrix}")
+        transformedFace = transformFace(rotatedFace, matrix)
 
         if mappedFaces[index] != None:
-            if deepCompare(mappedFaces[index], movedFace) != 0:
-                print(f"Face {index} is not unwrappable: {movedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
+            if deepCompare(mappedFaces[index], transformedFace) != 0:
+                #print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
                 raise Exception("Shape is not unwrappable without distorion")
         else:
-            mappedFaces[index] = movedFace
+            mappedFaces[index] = transformedFace
             mappedBy[index].append(neighbourIndex)
+            if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
+            #print(f"moved face {index}: {transformedFace}")
+    
+    return deepToList(mappedFaces)
+
     
     return mappedFaces
 
 
-import time
-start = time.time()
 
-mesh = [
-    [[0, 0, 0], [2, 0, 0], [0, 0, 2], [-2, 0, 2]],
-    [[-2, 0, 2], [-2, -1, 3], [0, -1, 3], [0, 0, 2]],
-    [[-2, 2, -2], [0, 0, 0], [2, 0, 0]]
-]
+if __name__ =="__main__":
+    print("\nTests done.\n")
 
-graph = graphOfFaces(mesh)
+    import time
+    start = time.time()
 
-unwrapped = unwrap(mesh)
+    mesh = [
+        [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
+        [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
+        [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]]
+    ]
 
-for face in unwrapped:
-    print(face)
+    graph = graphOfFaces(mesh)
 
-end = time.time()
-print(f"Time: {end - start} s")
+    unwrapped = unwrap(mesh)
+    print("----------------------------------------------------------------")
+
+    for face in unwrapped:
+        print(face)
+
+    end = time.time()
+    print(f"Time: {end - start} s")
