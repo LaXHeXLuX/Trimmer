@@ -122,6 +122,22 @@ class Trim(bpy.types.PropertyGroup):
         raise ArithmeticError(f"Values {x1}, {x2} don't respond to our laws of math!")
 
     @staticmethod
+    def deepCompare(a1, a2):
+        try:
+            if len(a1) != len(a2):
+                return False
+            
+            for i in range(len(a1)):
+                elementCompare = deepCompare(a1[i], a2[i])
+                if elementCompare > 0:
+                    return 1
+                if elementCompare < 0:
+                    return -1
+            return 0
+        except:
+            return compare(a1, a2)
+
+    @staticmethod
     def vectorAreEqual(v1, v2):
         if len(v1) != len(v2):
             return False
