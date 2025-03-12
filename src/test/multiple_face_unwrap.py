@@ -279,12 +279,57 @@ def unwrap(mesh):
     
     return deepToList(mappedFaces)
 
+def test(inputArr, outputArr):
+    result = unwrap(inputArr)
+    if deepCompare(result, outputArr) != 0:
+        raise Exception(f"Equals test failed: unwrap({inputArr}) != {outputArr}")
     
-    return mappedFaces
+def testFail(inputArr):
+    try:
+        result = unwrap(inputArr)
+        raise Exception(f"Error test failed: {inputArr}")
+    except:
+        pass
 
+def runTests():
+    test(
+        [[[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]]], 
+        [[[1, -1], [1, 1], [-1, 1], [-1, -1]]]
+    )
+    test(
+        [
+            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1]], 
+            [[-1, -1, 1], [1, -1, 1], [1, -1, -1]]
+        ], 
+        [
+            [[-1, 1], [-1, -1], [1, -1]], 
+            [[-1, -1], [1, -1], [1, -3]]
+        ]
+    )
+    testFail(
+        [
+            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
+            [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
+            [[-1, 1, 1], [-1, -1, 1], [-1, -1, -1], [1, 1, -1]]
+        ]
+    )
+    test(
+        [
+            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
+            [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
+            [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]]
+        ], 
+        [
+            [[-1, 1], [-1, -1], [1, -1], [1, 1]], 
+            [[-1, -1], [1, -1], [1, -3], [-1, -3]], 
+            [[-1, 1], [1, 1], [1, 3], [-1, 3]]
+        ]
+    )
 
 
 if __name__ =="__main__":
+    runTests()
+
     print("\nTests done.\n")
 
     import time
