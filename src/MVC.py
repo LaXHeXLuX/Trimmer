@@ -1,13 +1,5 @@
 import numpy as np
-
-def compare(x1, x2):
-    EPSILON = 1e-8
-    difference = x1-x2
-    if difference < -EPSILON:
-        return -1
-    if difference > EPSILON:
-        return 1
-    return 0
+from utils import *
 
 def normalise(arr):
     newArr = []
@@ -78,50 +70,46 @@ def mvcWeights(polygon, points):
     for point in points:
         weights.append(mvcPointWeight(polygon, point))
 
-    return weights
+    return deepToList(weights)
 
 def applyMvcWeights(polygon, weights):
-    new_positions = []
+    newPositions = []
     
     for i in range(len(weights)):
-        new_x = 0
-        new_y = 0
+        newX = 0
+        newY = 0
         
         for j in range(len(polygon)):
             weight = weights[i][j]
-            vertex_x, vertex_y = polygon[j]
+            x, y = polygon[j]
             
-            new_x += weight * vertex_x
-            new_y += weight * vertex_y
+            newX += weight * x
+            newY += weight * y
         
-        new_positions.append((new_x, new_y))
+        newPositions.append((newX, newY))
     
-    return new_positions
+    return deepToList(newPositions)
 
-def roundList(arr):
-    newArr = []
-    for a in arr:
-        try:
-            newArr.append(float(round(a, 8)))
-        except:
-            newArr.append(roundList(a))
-    return newArr
+def test(oldPolygon, inputPoints, newPolygon, outputPoints):
+    weights = mvcWeights(oldPolygon, inputPoints)
+    result = applyMvcWeights(newPolygon, weights)
+    if deepCompare(result, outputPoints) != 0:
+        raise Exception(f"Equals test failed: {result} != {outputPoints}")
 
-polygon = [(0, 0), (0, 3), (10, 3), (10, 2), (1, 2), (1, 1), (10, 1), (10, 0)]
-points = [(0.5, 1.5), (0.5, 2.5), (5, 0.8), (5, 2.2)]
+def runtests():
+    test(
+        [[0, 0], [0, 1], [1, 1], [1, 0]],
+        [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0.5], [0.5, 1], [1, 0.5], [0.5, 0], [0.5, 0.5], [0.2, 0.8], [0.7, 0.3]],
+        [[0, 0], [0, 1], [1, 1], [1, 0]],
+        [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0.5], [0.5, 1], [1, 0.5], [0.5, 0], [0.5, 0.5], [0.2, 0.8], [0.7, 0.3]]
+    )
+    test(
+        [[-2, -1], [-2, 1], [2, 1], [2, -1]],
+        [[-1, 0], [0, 0], [1, 0]],
+        [[-2, -1], [-2, 3], [2, 3], [2, -1]],
+        [[-1, 1], [0, 1], [1, 1]]
+    )
 
-weights = mvcWeights(polygon, points)
-print(f"MVC Weights for points:")
-for i in range(len(weights)):
-    print(f"{roundList(points[i])}: {roundList(weights[i])}")
-
-newPolygon = [(0, 0), (0, 10), (10, 10), (10, 9), (1, 9), (1, 1), (10, 1), (10, 0)]
-
-newPositions = applyMvcWeights(newPolygon, weights)
-rounded = roundList(newPositions)
-print(f"Rounded points: {rounded}")
-
-weights = mvcWeights(newPolygon, newPositions)
-print(f"MVC Weights for points:")
-for i in range(len(weights)):
-    print(f"{roundList(newPositions[i])}: {roundList(weights[i])}")
+if __name__ == "__main__":
+    runtests()
+    print("\nTests done\n")
