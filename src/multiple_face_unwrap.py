@@ -329,25 +329,6 @@ def runTests():
 
 if __name__ =="__main__":
     runTests()
-
     print("\nTests done.\n")
 
-    import time
-    start = time.time()
-
-    mesh = [
-        [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
-        [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
-        [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]]
-    ]
-
-    graph = graphOfFaces(mesh)
-
-    unwrapped = unwrap(mesh)
-    print("----------------------------------------------------------------")
-
-    for face in unwrapped:
-        print(face)
-
-    end = time.time()
-    print(f"Time: {end - start} s")
+    
