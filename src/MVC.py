@@ -68,27 +68,35 @@ def mvcPointWeight(polygon, point):
 def mvcWeights(polygon, points):
     weights = []
     for point in points:
-        weights.append(mvcPointWeight(polygon, point))
+        try:
+            weights.append(mvcWeights(polygon. point))
+        except:
+            weights.append(mvcPointWeight(polygon, point))
 
-    return deepToList(weights)
+    return weights
+
+def applyMvcWeight(polygon, weights):
+    newX = 0
+    newY = 0
+    
+    for j in range(len(polygon)):
+        x, y = polygon[j]
+        
+        newX += weights[j] * x
+        newY += weights[j] * y
+
+    return [newX, newY]
 
 def applyMvcWeights(polygon, weights):
     newPositions = []
     
     for i in range(len(weights)):
-        newX = 0
-        newY = 0
-        
-        for j in range(len(polygon)):
-            weight = weights[i][j]
-            x, y = polygon[j]
-            
-            newX += weight * x
-            newY += weight * y
-        
-        newPositions.append((newX, newY))
+        try:
+            newPositions.append(applyMvcWeights(polygon, weights[i]))
+        except:
+            newPositions.append(applyMvcWeight(polygon, weights[i]))
     
-    return deepToList(newPositions)
+    return newPositions
 
 def test(oldPolygon, inputPoints, newPolygon, outputPoints):
     weights = mvcWeights(oldPolygon, inputPoints)
@@ -108,6 +116,12 @@ def runtests():
         [[-1, 0], [0, 0], [1, 0]],
         [[-2, -1], [-2, 3], [2, 3], [2, -1]],
         [[-1, 1], [0, 1], [1, 1]]
+    )
+    test(
+        [[0, 0], [0, 2], [5, 2], [5, 0]],
+        [[[0, 0], [0, 2], [2, 2], [2, 0]], [[2, 2], [5, 2], [5, 0], [2, 0]]],
+        [[0, 0], [0, 4], [15, 4], [15, 0]],
+        [[[0, 0], [0, 4], [6, 4], [6, 0]], [[6, 4], [15, 4], [15, 0], [6, 0]]]
     )
 
 if __name__ == "__main__":
