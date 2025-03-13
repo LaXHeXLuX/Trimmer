@@ -30,37 +30,37 @@ def mvcPointOnEdgeWeight(n, distance1, distance2, index1):
 
 def mvcPointWeight(polygon, point):
     distances = []
-    tan_thetas = []
+    tanThetas = []
 
     for i in range(len(polygon)):
         vertex = polygon[i]
         v1 = np.array(vertex) - np.array(point)
-        v1_dist = np.linalg.norm(v1)
+        v1Dist = np.linalg.norm(v1)
 
-        if compare(v1_dist, 0) == 0:
+        if compare(v1Dist, 0) == 0:
             return mvcPointOnVertex(len(polygon), i)
 
         nextVertex = polygon[(i+1) % len(polygon)]
         v2 = np.array(nextVertex) - np.array(point)
-        v2_dist = np.linalg.norm(v2)
+        v2Dist = np.linalg.norm(v2)
 
-        if compare(v2_dist, 0) == 0:
+        if compare(v2Dist, 0) == 0:
             return mvcPointOnVertex(len(polygon), (i+1) % len(polygon))
-        cos = np.dot(v1, v2) / (v1_dist * v2_dist)
+        cos = np.dot(v1, v2) / (v1Dist * v2Dist)
 
         if compare(cos, -1) == 0:
-            return mvcPointOnEdgeWeight(len(polygon), v1_dist, v2_dist, i)
+            return mvcPointOnEdgeWeight(len(polygon), v1Dist, v2Dist, i)
 
-        theta = np.arccos(round(np.dot(v1, v2) / (v1_dist * v2_dist), 6))
+        theta = np.arccos(round(np.dot(v1, v2) / (v1Dist * v2Dist), 6))
 
-        distances.append(v1_dist)
-        tan_thetas.append(np.tan(theta / 2))
+        distances.append(v1Dist)
+        tanThetas.append(np.tan(theta / 2))
 
     weight = []
     for i in range(len(polygon)):
-        prev_tan = tan_thetas[(i-1) % len(tan_thetas)]
-        tan = tan_thetas[i]
-        w = (prev_tan + tan) / distances[i]
+        prevTan = tanThetas[(i-1) % len(tanThetas)]
+        tan = tanThetas[i]
+        w = (prevTan + tan) / distances[i]
         weight.append(round(w, 6))
 
     return normalise(weight)

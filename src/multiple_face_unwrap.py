@@ -82,9 +82,8 @@ def rotationMatrixToFlattenFace(face, indexIncreasing):
 def rotationMatrixFromNormals(v1, v2):
     v1, v2 = v1 / np.linalg.norm(v1), v2 / np.linalg.norm(v2)
     v = np.cross(v1, v2)
-    v_norm = np.linalg.norm(v)
 
-    if v_norm == 0:
+    if np.linalg.norm(v) == 0:
         return np.eye(3) 
 
     K = np.array([
@@ -93,8 +92,8 @@ def rotationMatrixFromNormals(v1, v2):
         [-v[1], v[0], 0]
     ])
 
-    cos_theta = np.dot(v1, v2)
-    R = np.eye(3) + K + np.dot(K, K) / (1 + cos_theta)
+    cosTheta = np.dot(v1, v2)
+    R = np.eye(3) + K + np.dot(K, K) / (1 + cosTheta)
     return R
 
 def faceNormal(face, indexIncreasing):
@@ -172,12 +171,12 @@ def translationRotationMatrix(o1, o2, t1, t2):
     vectorO = o1 - o2
     vectorT = t1 - t2
 
-    cos_theta = np.dot(vectorO, vectorT) / (np.linalg.norm(vectorO) * np.linalg.norm(vectorT))
-    sin_theta = np.sqrt(1 - cos_theta**2)
+    cosTheta = np.dot(vectorO, vectorT) / (np.linalg.norm(vectorO) * np.linalg.norm(vectorT))
+    sinTheta = np.sqrt(1 - cosTheta**2)
 
     R = np.array([
-        [cos_theta, -sin_theta],
-        [sin_theta,  cos_theta]
+        [cosTheta, -sinTheta],
+        [sinTheta,  cosTheta]
     ])
 
     T = np.eye(3)

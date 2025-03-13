@@ -63,7 +63,7 @@ def isCollinear(p1, p2, p3):
         if v1[i] != 0 or v2[i] != 0:
             return deepCompare(v1 * v2[i], v2 * v1[i]) == 0
 
-    return deepCompare(scaled_v1, scaled_v2) == 0
+    return deepCompare(v1, v2) == 0
 
 def pointIsCollinear(points, index):
     p1 = points[(index - 1) % len(points)]
