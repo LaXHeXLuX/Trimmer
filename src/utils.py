@@ -123,3 +123,69 @@ def boundaryVertices(polygons):
         current = nextVertex
 
     return compactPoints(np.array(boundary))
+
+def test(operation, inputs, output):
+    result = operation(*inputs)
+    if deepCompare(result, output) != 0:
+        raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
+
+def runTests():
+    # compare
+    test(compare, [1, 1], 0)
+    test(compare, [-10e100, 10e100], -1)
+    test(compare, [2, 0], 1)
+
+    # deepCompare
+    test(deepCompare, [0, 0], 0)
+    test(deepCompare, [[1, 2, 3], [1, 2, 3]], 0)
+    test(deepCompare, [[1, 2, 3], [1, 2, 4]], -1)
+    test(deepCompare, [[[], 2, [[0], 5]], [[], 2, [[0], 5]]], 0)
+    test(deepCompare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
+
+    # roundList
+    test(roundList, [[1]], [1])
+    test(roundList, [[0, 0.999999999, 2.000000001]], [0, 1, 2])
+
+    polygon = [[0, 0], [1, 2], [2, 4], [2, 3], [2, 1], [2, 0], [1, 0]]
+
+    # pointIsCollinear
+    test(pointIsCollinear, [np.array(polygon), 0], False)
+    test(pointIsCollinear, [np.array(polygon), 1], True)
+
+    # compactPoints
+    test(
+        compactPoints, 
+        [np.array([[0, 0], [2, 4], [2, 0]])], 
+        [[0, 0], [2, 4], [2, 0]]
+    )
+    test(
+        compactPoints, 
+        [np.array([[0, 0], [1, 2], [2, 4], [2, 3], [2, 1], [2, 0], [1, 0]])], 
+        [[0, 0], [2, 4], [2, 0]]
+    )
+
+    # boundaryVertices
+    test(
+        boundaryVertices, 
+        [[[[0, 0], [0, 1], [1, 1], [1, 0]]]], 
+        [[0, 0], [0, 1], [1, 1], [1, 0]]
+    )
+    test(
+        boundaryVertices, 
+        [[
+            [[0, 0], [0, 1], [1, 0]],
+            [[0, 1], [1, 1], [1, 0]]
+        ]], 
+        [[0, 0], [0, 1], [1, 1], [1, 0]]
+    )
+    test(
+        boundaryVertices, 
+        [[
+            [[0, 0], [0, 1], [1, 1], [1, 0]],
+            [[1, 1], [2, 1], [2, 0], [1, 0]]
+        ]], 
+        [[0, 0], [0, 1], [2, 1], [2, 0]]
+    )
+
+if __name__ == "__main__":
+    runTests()
