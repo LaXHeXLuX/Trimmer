@@ -79,12 +79,29 @@ def rotationMatrixToFlattenFace(face, indexIncreasing):
     normal2 = np.array([0, 0, 1])
     return rotationMatrixFromNormals(normal1, normal2)
 
+def getPerpendicularVector(v):
+    pv = [1, 0, 0]
+    if v[0] != 0:
+        pv = [-v[1], v[0], 0]
+    elif v[1] != 0:
+        pv = [v[2], 0, -v[0]]
+
+    return pv
+
+def antiParallelRotationMatrix(v1):        
+    axis = getPerpendicularVector(v1)
+    R = 2 * np.outer(axis, axis) - np.eye(3)
+    return R
+
 def rotationMatrixFromNormals(v1, v2):
     v1, v2 = v1 / np.linalg.norm(v1), v2 / np.linalg.norm(v2)
     v = np.cross(v1, v2)
 
     if np.linalg.norm(v) == 0:
-        return np.eye(3) 
+        if np.dot(v1, v2) > 0:
+            return np.eye(3)
+        
+        return antiParallelRotationMatrix(v1)
 
     K = np.array([
         [0, -v[2], v[1]],
@@ -111,16 +128,8 @@ def normal(P1, P2, P3):
 
 def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
+    #print(f"R:\n{R}")
     return np.dot(face.getNumpyVertices(), R.T)
-
-def roundList(arr):
-    newArr = []
-    for a in arr:
-        try:
-            newArr.append(float(round(a, 8)))
-        except:
-            newArr.append(roundList(a))
-    return newArr
 
 def sharedEdge(f1, f2):
     for i in range(len(f1)):
@@ -207,6 +216,11 @@ def transformFace(face, matrix):
     return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
+    #print("unwrap. mesh:")
+    #for f in mesh:
+    #    print(f)
+    #print()
+
     import copy
 
     mappedFaces = []
@@ -218,11 +232,19 @@ def unwrap(mesh):
     graph = graphOfFaces(mesh)
     stack = []
     stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
+    
+    #print("graph:")
+    #for i in range(len(graph)):
+    #    print(graph[i])
+    #print()
 
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex = stack.pop()
+        #print(f"new loop. stack size: {len(stack)}")
+        #print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
 
         if neighbourIndex in mappedBy[index]:
+            #print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
@@ -230,10 +252,13 @@ def unwrap(mesh):
                 continue
             neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
             stack.append((i, neighbourIndexIncreasing, index))
+            #print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = Face(copy.deepcopy(mesh[index]))
         rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).getNumpyVertices()
+        #print(f"rotatedFace before padding: {rotatedFace}")
         rotatedFace = padPoints(rotatedFace, 2)
+        #print(f"rotatedFace {index}: {rotatedFace}")
 
         origin1 = rotatedFace[0]
         origin2 = rotatedFace[1]
@@ -248,22 +273,25 @@ def unwrap(mesh):
                 target1, target2 = target2, target1
         
         matrix = translationRotationMatrix(origin1, origin2, target1, target2)
+        #print(f"matrix:\n{matrix}")
         transformedFace = transformFace(rotatedFace, matrix)
 
         if mappedFaces[index] != None:
             if deepCompare(mappedFaces[index], transformedFace) != 0:
+                #print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
                 raise Exception("Shape is not unwrappable without distorion")
         else:
             mappedFaces[index] = transformedFace
             mappedBy[index].append(neighbourIndex)
             if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
+            #print(f"moved face {index}: {transformedFace}")
     
     return deepToList(mappedFaces)
 
 def test(inputArr, outputArr):
     result = unwrap(inputArr)
     if deepCompare(result, outputArr) != 0:
-        raise Exception(f"Equals test failed: unwrap({inputArr}) != {outputArr}")
+        raise Exception(f"Equals test failed: {result} != {outputArr}")
     
 def testFail(inputArr):
     try:
@@ -273,6 +301,10 @@ def testFail(inputArr):
         pass
 
 def runTests():
+    test(
+        [[[-1, -1, 0], [-1, 1, 0], [1, 1, 0], [1, -1, 0]]], 
+        [[[-1, 1], [-1, -1], [1, -1], [1, 1]]]
+    )
     test(
         [[[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]]], 
         [[[1, -1], [1, 1], [-1, 1], [-1, -1]]]
@@ -308,12 +340,22 @@ def runTests():
     )
     test(
         [
-            [[1.0, -1.0, -1.0], [1.0, -1.0, 1.0], [-1.0, -1.0, 1.0], [-1.0, -1.0, -1.0]], 
-            [[-1.0, -1.0, -1.0], [-1.0, -1.0, 1.0], [-1.0, 1.0, 1.0], [-1.0, 1.0, -1.0]]
+            [[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]], 
+            [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]]
         ], 
         [
-            [[1.0, -1.0], [1.0, 1.0], [-1.0, 1.0], [-1.0, -1.0]], 
-            [[-1.0, -1.0], [-1.0, 1.0], [-3.0, 1.0], [-3.0, -1.0]]
+            [[1, -1], [1, 1], [-1, 1], [-1, -1]], 
+            [[-1, -1], [-1, 1], [-3, 1], [-3, -1]]
+        ]
+    )
+    test(
+        [
+            [[-1, 1, -1], [1, 1, -1], [1, -1, -1], [-1, -1, -1]], 
+            [[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]]
+        ], 
+        [
+            [[-1, -1], [1, -1], [1, 1], [-1, 1]], 
+            [[1, -1], [3, -1], [3, 1], [1, 1]]
         ]
     )
 
