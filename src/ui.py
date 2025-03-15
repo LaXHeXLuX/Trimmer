@@ -3,7 +3,7 @@ from .trimmer import Trimmer
 
 class TrimmerUI(bpy.types.Panel):
     bl_label = "Trimmer"
-    bl_idname = "TRIMMER"
+    bl_idname = "TRIMMER_PT_UI"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Trimmer"
