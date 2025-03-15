@@ -177,11 +177,15 @@ def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
 
 def translationRotationMatrix(o1, o2, t1, t2):
+    #print(f"translationRotationMatrix({o1}, {o2}, {t1}, {t2})")
     vectorO = o1 - o2
     vectorT = t1 - t2
+    vOnorm = np.linalg.norm(vectorO)
+    vTnorm = np.linalg.norm(vectorT)
+    product = vOnorm * vTnorm
 
-    cosTheta = np.dot(vectorO, vectorT) / (np.linalg.norm(vectorO) * np.linalg.norm(vectorT))
-    sinTheta = np.sqrt(1 - cosTheta**2)
+    cosTheta = np.dot(vectorO, vectorT) / product
+    sinTheta = np.cross(vectorO, vectorT) / product
 
     R = np.array([
         [cosTheta, -sinTheta],
@@ -358,7 +362,18 @@ def runTests():
             [[1, -1], [3, -1], [3, 1], [1, 1]]
         ]
     )
-
+    test(
+        [
+            [[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]], 
+            [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]], 
+            [[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]]
+        ],
+        [
+            [[1, -1], [1, 1], [-1, 1], [-1, -1]],
+            [[-1, -1], [-1, 1], [-3, 1], [-3, -1]],
+            [[3, -1], [3, 1], [1, 1], [1, -1]]
+        ]
+    )
 
 if __name__ =="__main__":
     runTests()
