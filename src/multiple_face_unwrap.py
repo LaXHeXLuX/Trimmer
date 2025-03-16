@@ -53,11 +53,15 @@ def compare(x1, x2):
 def deepCompare(a1, a2):
     try:
         for i in range(len(a1)):
+            if i >= len(a2):
+                return 1
             elementCompare = deepCompare(a1[i], a2[i])
             if elementCompare > 0:
                 return 1
             if elementCompare < 0:
                 return -1
+        if len(a1) < len(a2):
+            return -1
         return 0
     except:
         return compare(a1, a2)
@@ -372,6 +376,16 @@ def runTests():
             [[1, -1], [1, 1], [-1, 1], [-1, -1]],
             [[-1, -1], [-1, 1], [-3, 1], [-3, -1]],
             [[3, -1], [3, 1], [1, 1], [1, -1]]
+        ]
+    )
+    test(
+        [
+            [[2, 1, 1], [-1, 1, 1], [-1, 0, 1], [-1, -1, 1], [1, -1, 1]], 
+            [[2, 1, -1], [2, 1, 1], [1, -1, 1], [1, -1, -1]]
+        ],
+        [
+            [[2, 1], [-1, 1], [-1, 0], [-1, -1], [1, -1]],
+            [[3.788854382, 0.105572809], [2, 1], [1, -1], [2.788854382, -1.894427191]]
         ]
     )
     """
