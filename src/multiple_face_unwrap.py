@@ -128,7 +128,7 @@ def normal(P1, P2, P3):
 
 def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
-    #print(f"R:\n{R}")
+    print(f"R:\n{R}")
     return np.dot(face.getNumpyVertices(), R.T)
 
 def sharedEdge(f1, f2):
@@ -177,7 +177,7 @@ def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
 
 def translationRotationMatrix(o1, o2, t1, t2):
-    #print(f"translationRotationMatrix({o1}, {o2}, {t1}, {t2})")
+    print(f"translationRotationMatrix({o1}, {o2}, {t1}, {t2})")
     vectorO = o1 - o2
     vectorT = t1 - t2
     vOnorm = np.linalg.norm(vectorO)
@@ -220,10 +220,10 @@ def transformFace(face, matrix):
     return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
-    #print("unwrap. mesh:")
-    #for f in mesh:
-    #    print(f)
-    #print()
+    print("unwrap. mesh:")
+    for f in mesh:
+        print(f)
+    print()
 
     import copy
 
@@ -237,18 +237,18 @@ def unwrap(mesh):
     stack = []
     stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
     
-    #print("graph:")
-    #for i in range(len(graph)):
-    #    print(graph[i])
-    #print()
+    print("graph:")
+    for i in range(len(graph)):
+        print(graph[i])
+    print()
 
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex = stack.pop()
-        #print(f"new loop. stack size: {len(stack)}")
-        #print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
+        print(f"new loop. stack size: {len(stack)}")
+        print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
 
         if neighbourIndex in mappedBy[index]:
-            #print(f"{index} already mapped from {neighbourIndex}")
+            print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
@@ -256,13 +256,13 @@ def unwrap(mesh):
                 continue
             neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
             stack.append((i, neighbourIndexIncreasing, index))
-            #print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
+            print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = Face(copy.deepcopy(mesh[index]))
         rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).getNumpyVertices()
-        #print(f"rotatedFace before padding: {rotatedFace}")
+        print(f"rotatedFace before padding: {rotatedFace}")
         rotatedFace = padPoints(rotatedFace, 2)
-        #print(f"rotatedFace {index}: {rotatedFace}")
+        print(f"rotatedFace {index}: {rotatedFace}")
 
         origin1 = rotatedFace[0]
         origin2 = rotatedFace[1]
@@ -277,18 +277,18 @@ def unwrap(mesh):
                 target1, target2 = target2, target1
         
         matrix = translationRotationMatrix(origin1, origin2, target1, target2)
-        #print(f"matrix:\n{matrix}")
+        print(f"matrix:\n{matrix}")
         transformedFace = transformFace(rotatedFace, matrix)
 
         if mappedFaces[index] != None:
             if deepCompare(mappedFaces[index], transformedFace) != 0:
-                #print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
+                print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
                 raise Exception("Shape is not unwrappable without distorion")
         else:
             mappedFaces[index] = transformedFace
             mappedBy[index].append(neighbourIndex)
             if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
-            #print(f"moved face {index}: {transformedFace}")
+            print(f"moved face {index}: {transformedFace}")
     
     return deepToList(mappedFaces)
 
@@ -372,6 +372,16 @@ def runTests():
             [[1, -1], [1, 1], [-1, 1], [-1, -1]],
             [[-1, -1], [-1, 1], [-3, 1], [-3, -1]],
             [[3, -1], [3, 1], [1, 1], [1, -1]]
+        ]
+    )
+    test(
+        [
+            [[0.9, 0.2, -1], [0.9, 0.2, 1], [1, 0, 1], [1, 0, -1]], 
+            [[1, 0, -1], [1, 0, 1], [0.9, -0.2, 1], [0.9, -0.2, -1]]
+        ],
+        [
+            [[1, 0.2], [-1, 0.2], [-1, 0], [1, 0]],
+            [[1, 0], [-1, 0], [-1, -0.2], [1, -0.2]]
         ]
     )
 
