@@ -124,7 +124,7 @@ def boundaryVertices(polygons):
         boundary.append(list(current))
         current = nextVertex
 
-    return compactPoints(np.array(boundary))
+    return deepToList(compactPoints(np.array(boundary)))
 
 # MVC
 
