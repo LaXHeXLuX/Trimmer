@@ -1,4 +1,13 @@
 import numpy as np
+import copy
+
+if __name__ == '__main__':
+    from utils import *
+else:
+    from .utils import *
+
+class UnwrapException(Exception):
+    pass
 
 class Face:
     def __init__(self, vertices):
@@ -41,68 +50,40 @@ class Face:
             vertices.append(edge[0])
         return vertices
 
-def compare(x1, x2):
-    EPSILON = 1e-8
-    difference = x1-x2
-    if difference < -EPSILON:
-        return -1
-    if difference > EPSILON:
-        return 1
-    return 0
-
-def deepCompare(a1, a2):
+def deepRound(arr):
     try:
-        for i in range(len(a1)):
-            if i >= len(a2):
-                return 1
-            elementCompare = deepCompare(a1[i], a2[i])
-            if elementCompare > 0:
-                return 1
-            if elementCompare < 0:
-                return -1
-        if len(a1) < len(a2):
-            return -1
-        return 0
+        newArr = copy.deepcopy(arr)
+        for i in range(len(arr)):
+            newArr[i] = deepRound(arr[i])
+        return newArr
     except:
-        return compare(a1, a2)
-
-def deepToList(arr):
-    try:
-        arrToList = []
-        for a in arr:
-            try:
-                arrToList.append(a.tolist())
-            except:
-                arrToList.append(deepToList(a))
-        return arrToList
-    except:
-        return arr
+        return round(arr, 8)
 
 def rotationMatrixToFlattenFace(face, indexIncreasing):
     normal1 = faceNormal(face, indexIncreasing)
-    normal2 = np.array([0, 0, 1])
+    normal2 = np.array((0, 0, 1))
     return rotationMatrixFromNormals(normal1, normal2)
 
 def getPerpendicularVector(v):
-    pv = [1, 0, 0]
+    pv = (1, 0, 0)
     if v[0] != 0:
-        pv = [-v[1], v[0], 0]
+        pv = (-v[1], v[0], 0)
     elif v[1] != 0:
-        pv = [v[2], 0, -v[0]]
+        pv = (v[2], 0, -v[0])
 
     return pv
 
 def antiParallelRotationMatrix(v1):        
     axis = getPerpendicularVector(v1)
-    R = 2 * np.outer(axis, axis) - np.eye(3)
+    R = 2 * np.outer(np.array(axis), np.array(axis)) - np.eye(3)
     return R
 
 def rotationMatrixFromNormals(v1, v2):
-    v1, v2 = v1 / np.linalg.norm(v1), v2 / np.linalg.norm(v2)
-    v = np.cross(v1, v2)
+    v1, v2 = normalise(v1), normalise(v2)
+    v = crossProduct(v1, v2)
 
-    if np.linalg.norm(v) == 0:
-        if np.dot(v1, v2) > 0:
+    if distance(v) == 0:
+        if np.dot(np.array(v1), np.array(v2)) > 0:
             return np.eye(3)
         
         return antiParallelRotationMatrix(v1)
@@ -118,22 +99,16 @@ def rotationMatrixFromNormals(v1, v2):
     return R
 
 def faceNormal(face, indexIncreasing):
-    vertices = face.getNumpyVertices()
+    vertices = face.vertices
     P1, P2, P3 = vertices[0], vertices[1], vertices[2]
     if not indexIncreasing:
         P1, P3 = vertices[2], vertices[0]
     return normal(P1, P2, P3)
 
-def normal(P1, P2, P3):
-    V1 = P2 - P1
-    V2 = P3 - P2
-    normal = np.cross(V1, V2)
-    return normal / np.linalg.norm(normal)
-
 def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
     print(f"R:\n{R}")
-    return np.dot(face.getNumpyVertices(), R.T)
+    return np.dot(np.array(face.vertices), R.T)
 
 def sharedEdge(f1, f2):
     for i in range(len(f1)):
@@ -171,6 +146,25 @@ def graphOfFaces(mesh):
     
     return graphMatrix
 
+def dfs(matrix, visited, node):
+    visited[node] = True
+    for neighbor in range(len(matrix)):
+        if matrix[node][neighbor] is not None and not visited[neighbor]:
+            dfs(matrix, visited, neighbor)
+
+def countIslands(matrix):
+    visited = []
+    for i in range(len(matrix)):
+        visited.append(False)
+
+    islandCount = 0
+    for node in range(len(matrix)):
+        if not visited[node]:
+            dfs(matrix, visited, node)
+            islandCount += 1
+    
+    return islandCount
+
 def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     f1 = mesh[f1Index]
     f2 = mesh[f2Index]
@@ -182,8 +176,8 @@ def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
 
 def translationRotationMatrix(o1, o2, t1, t2):
     print(f"translationRotationMatrix({o1}, {o2}, {t1}, {t2})")
-    vectorO = o1 - o2
-    vectorT = t1 - t2
+    vectorO = np.array(subtract(o1, o2))
+    vectorT = np.array(subtract(t1, t2))
     vOnorm = np.linalg.norm(vectorO)
     vTnorm = np.linalg.norm(vectorT)
     product = vOnorm * vTnorm
@@ -202,25 +196,11 @@ def translationRotationMatrix(o1, o2, t1, t2):
 
     return T
 
-def padPoints(points, length):
-    newPoints = []
-    for point in points:
-        newPoint = []
-        i = 0
-        while len(newPoint) < length:
-            if i < len(point):
-                newPoint = np.append(newPoint, point[i])
-            else:   
-                newPoint = np.append(newPoint, 1)
-            i += 1
-        newPoints.append(newPoint)
-    return newPoints
-
 def transformFace(face, matrix):
     paddedFace = padPoints(face, len(matrix[0]))
     newFace = []
     for vertex in paddedFace:
-        newFace.append(matrix @ vertex)
+        newFace.append(matrix @ np.array(vertex))
     return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
@@ -229,8 +209,6 @@ def unwrap(mesh):
         print(f)
     print()
 
-    import copy
-
     mappedFaces = []
     mappedBy = []
     for i in range(len(mesh)):
@@ -238,6 +216,12 @@ def unwrap(mesh):
         mappedBy.append([])
 
     graph = graphOfFaces(mesh)
+    islandCount = countIslands(graph)
+    if islandCount == 0:
+        raise UnwrapException("Mesh is empty!")
+    if islandCount > 1:
+        raise UnwrapException(f"Can't unwrap mesh with more than 1 ({islandCount}) islands!")
+
     stack = []
     stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
     
@@ -263,7 +247,7 @@ def unwrap(mesh):
             print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = Face(copy.deepcopy(mesh[index]))
-        rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).getNumpyVertices()
+        rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).vertices
         print(f"rotatedFace before padding: {rotatedFace}")
         rotatedFace = padPoints(rotatedFace, 2)
         print(f"rotatedFace {index}: {rotatedFace}")
@@ -287,14 +271,22 @@ def unwrap(mesh):
         if mappedFaces[index] != None:
             if deepCompare(mappedFaces[index], transformedFace) != 0:
                 print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
-                raise Exception("Shape is not unwrappable without distorion")
+                raise UnwrapException("Shape is not unwrappable without distorion")
         else:
             mappedFaces[index] = transformedFace
             mappedBy[index].append(neighbourIndex)
             if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
             print(f"moved face {index}: {transformedFace}")
-    
-    return deepToList(mappedFaces)
+    print(f"mappedFaces: {mappedFaces}")
+
+    return deepRound(deepToList(mappedFaces))
+
+# Testing
+
+def testMethod(operation, inputs, output):
+    result = operation(*inputs)
+    if deepCompare(result, output) != 0:
+        raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
 
 def test(inputArr, outputArr):
     result = unwrap(inputArr)
@@ -305,103 +297,104 @@ def testFail(inputArr):
     try:
         result = unwrap(inputArr)
         raise Exception(f"Error test failed: {inputArr}")
-    except:
+    except UnwrapException as ue:
         pass
 
 def runTests():
+    testMethod(deepRound, [1], 1)
+    testMethod(deepRound, [1.0000000001], 1)
+    testMethod(deepRound, [[1.5, 2, [0.000000002]]], [1.5, 2, [0]])
+
     test(
-        [[[-1, -1, 0], [-1, 1, 0], [1, 1, 0], [1, -1, 0]]], 
-        [[[-1, 1], [-1, -1], [1, -1], [1, 1]]]
+        [[(-1, -1, 0), (-1, 1, 0), (1, 1, 0), (1, -1, 0)]], 
+        [[(-1, 1), (-1, -1), (1, -1), (1, 1)]]
     )
     test(
-        [[[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]]], 
-        [[[1, -1], [1, 1], [-1, 1], [-1, -1]]]
+        [[(1, -1, -1), (1, -1, 1), (-1, -1, 1), (-1, -1, -1)]], 
+        [[(1, -1), (1, 1), (-1, 1), (-1, -1)]]
     )
     test(
         [
-            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1]], 
-            [[-1, -1, 1], [1, -1, 1], [1, -1, -1]]
+            [(-1, 1, 1), (-1, -1, 1), (1, -1, 1)], 
+            [(-1, -1, 1), (1, -1, 1), (1, -1, -1)]
         ], 
         [
-            [[-1, 1], [-1, -1], [1, -1]], 
-            [[-1, -1], [1, -1], [1, -3]]
+            [(-1, 1), (-1, -1), (1, -1)], 
+            [(-1, -1), (1, -1), (1, -3)]
         ]
     )
     testFail(
         [
-            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
-            [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
-            [[-1, 1, 1], [-1, -1, 1], [-1, -1, -1], [1, 1, -1]]
+            [(-1, 1, 1), (-1, -1, 1), (1, -1, 1), (1, 1, 1)], 
+            [(-1, -1, 1), (1, -1, 1), (1, -1, -1), (-1, -1, -1)],
+            [(-1, 1, 1), (-1, -1, 1), (-1, -1, -1), (1, 1, -1)]
         ]
     )
     test(
         [
-            [[-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, 1]], 
-            [[-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1]],
-            [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]]
+            [(-1, 1, 1), (-1, -1, 1), (1, -1, 1), (1, 1, 1)], 
+            [(-1, -1, 1), (1, -1, 1), (1, -1, -1), (-1, -1, -1)],
+            [(-1, 1, 1), (1, 1, 1), (1, 1, -1), (-1, 1, -1)]
         ], 
         [
-            [[-1, 1], [-1, -1], [1, -1], [1, 1]], 
-            [[-1, -1], [1, -1], [1, -3], [-1, -3]], 
-            [[-1, 1], [1, 1], [1, 3], [-1, 3]]
+            [(-1, 1), (-1, -1), (1, -1), (1, 1)], 
+            [(-1, -1), (1, -1), (1, -3), (-1, -3)], 
+            [(-1, 1), (1, 1), (1, 3), (-1, 3)]
         ]
     )
     test(
         [
-            [[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]], 
-            [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]]
+            [(1, -1, -1), (1, -1, 1), (-1, -1, 1), (-1, -1, -1)], 
+            [(-1, -1, -1), (-1, -1, 1), (-1, 1, 1), (-1, 1, -1)]
         ], 
         [
-            [[1, -1], [1, 1], [-1, 1], [-1, -1]], 
-            [[-1, -1], [-1, 1], [-3, 1], [-3, -1]]
+            [(1, -1), (1, 1), (-1, 1), (-1, -1)], 
+            [(-1, -1), (-1, 1), (-3, 1), (-3, -1)]
         ]
     )
     test(
         [
-            [[-1, 1, -1], [1, 1, -1], [1, -1, -1], [-1, -1, -1]], 
-            [[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]]
+            [(-1, 1, -1), (1, 1, -1), (1, -1, -1), (-1, -1, -1)], 
+            [(1, 1, -1), (1, 1, 1), (1, -1, 1), (1, -1, -1)]
         ], 
         [
-            [[-1, -1], [1, -1], [1, 1], [-1, 1]], 
-            [[1, -1], [3, -1], [3, 1], [1, 1]]
+            [(-1, -1), (1, -1), (1, 1), (-1, 1)], 
+            [(1, -1), (3, -1), (3, 1), (1, 1)]
         ]
     )
     test(
         [
-            [[1, -1, -1], [1, -1, 1], [-1, -1, 1], [-1, -1, -1]], 
-            [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]], 
-            [[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]]
+            [(1, -1, -1), (1, -1, 1), (-1, -1, 1), (-1, -1, -1)], 
+            [(-1, -1, -1), (-1, -1, 1), (-1, 1, 1), (-1, 1, -1)], 
+            [(1, 1, -1), (1, 1, 1), (1, -1, 1), (1, -1, -1)]
         ],
         [
-            [[1, -1], [1, 1], [-1, 1], [-1, -1]],
-            [[-1, -1], [-1, 1], [-3, 1], [-3, -1]],
-            [[3, -1], [3, 1], [1, 1], [1, -1]]
+            [(1, -1), (1, 1), (-1, 1), (-1, -1)],
+            [(-1, -1), (-1, 1), (-3, 1), (-3, -1)],
+            [(3, -1), (3, 1), (1, 1), (1, -1)]
         ]
     )
     test(
         [
-            [[2, 1, 1], [-1, 1, 1], [-1, 0, 1], [-1, -1, 1], [1, -1, 1]], 
-            [[2, 1, -1], [2, 1, 1], [1, -1, 1], [1, -1, -1]]
+            [(2, 1, 1), (-1, 1, 1), (-1, 0, 1), (-1, -1, 1), (1, -1, 1)], 
+            [(2, 1, -1), (2, 1, 1), (1, -1, 1), (1, -1, -1)]
         ],
         [
-            [[2, 1], [-1, 1], [-1, 0], [-1, -1], [1, -1]],
-            [[3.788854382, 0.105572809], [2, 1], [1, -1], [2.788854382, -1.894427191]]
+            [(2, 1), (-1, 1), (-1, 0), (-1, -1), (1, -1)],
+            [(3.788854382, 0.105572809), (2, 1), (1, -1), (2.788854382, -1.894427191)]
         ]
     )
-    """
-    test(
+    testFail(
         [
-            [[0.9, 0.2, -1], [0.9, 0.2, 1], [1, 0, 1], [1, 0, -1]], 
-            [[1, 0, -1], [1, 0, 1], [0.9, -0.2, 1], [0.9, -0.2, -1]]
-        ],
-        [
-            [[1, 0.2], [-1, 0.2], [-1, 0], [1, 0]],
-            [[1, 0], [-1, 0], [-1, -0.2], [1, -0.2]]
+            [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0)],
+            [(0, 0, 1), (0, 1, 1), (1, 1, 1), (1, 0, 1)]
         ]
-    )"""
+    )
 
 if __name__ =="__main__":
     runTests()
     print("\nTests done.\n")
 
-    
+    mesh = [[[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]], [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]]
+    unwrapped = unwrap(mesh)
+    print(f"\nunwrapped: \n{unwrapped}")

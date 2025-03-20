@@ -2,14 +2,47 @@ import bpy
 import bmesh
 import math
 from mathutils import Vector
+from .utils import *
+from .multiple_face_unwrap import unwrap
 
 class Trimmer():
+
     @classmethod
     def test(cls, context, operator):
         operator.report({'INFO'}, "Test button is clicked!")
 
+    @staticmethod
+    def applyFaces(faces, trim, uvLayer, operator):
+        # Get adjusted UV coordinates
+        meshCoords = Trim.parseMeshCoordinates(faces)
+
+        #for i in range(len(faces)):
+        #    if len(faces[i].loops) != len(meshCoords[i]):
+        #        operator.report({'ERROR'}, f"Selected face ({len(face.loops)} vertices) must have the same number of vertices as the saved face ({len(uvCoords)} vertices)!")
+        #        return
+
+        flatMeshCoords = unwrap(meshCoords)
+        print(f"flatMeshCoords: {flatMeshCoords}\n")
+
+        fitOption = context.scene.trim_options.fitOptions
+        if fitOption == 'FIT':
+            pass
+        
+        print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
+        uvCoords = Trim.uvCoordsForMesh(trim.getUvCoords(), flatMeshCoords)
+        print(f"uvCoords: {uvCoords}\n")
+        print(f"faces")
+
+        # Apply UV coordinates
+        for face, uvFace in zip(faces, uvCoords):
+            for loop, coord in zip(face.loops, uvFace):
+                print(f"applying UV: {loop[uvLayer].uv} = {coord}")
+                loop[uvLayer].uv = coord
+
     @classmethod
     def apply_texture(cls, context, operator):
+        print("\n--------------------------------------------")
+        print("apply texture")
         # Run checks
         obj = context.object
         if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
@@ -17,35 +50,23 @@ class Trimmer():
             return
 
         bm = bmesh.from_edit_mesh(obj.data)
-        uv_layer = bm.loops.layers.uv.active
-        if uv_layer is None:
+        uvLayer = bm.loops.layers.uv.active
+        if uvLayer is None:
             operator.report({'ERROR'}, "The object does not have an active UV map!")
             return
 
-        selected_faces = [face for face in bm.faces if face.select]
-        if selected_faces is None or selected_faces == []:
+        selectedFaces = [face for face in bm.faces if face.select]
+        if selectedFaces is None or selectedFaces == []:
             operator.report({'ERROR'}, "No face selected!")
             return
-            
-        face = selected_faces[0]
 
         trim = context.scene.trim_collection[operator.index]
         if trim is None:
             operator.report({'ERROR'}, "Trim is null!")
             return
+
+        Trimmer.applyFaces(selectedFaces, trim, uvLayer, operator)
         
-        # Get adjusted UV coordinates
-        face_coords = [loop.vert.co for loop in face.loops]
-        uv_coords = Trim.get_uv_coords_for_face(trim.get_uv_coords(), face_coords)
-
-        if len(face.loops) != len(uv_coords):
-            operator.report({'ERROR'}, f"Selected face ({len(face.loops)} vertices) must have the same number of vertices as the saved face ({len(uv_coords)} vertices)!")
-            return
-
-        # Apply UV coordinates
-        for loop, uv in zip(face.loops, uv_coords):
-            loop[uv_layer].uv = uv
-
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
@@ -57,21 +78,21 @@ class Trimmer():
             return False
 
         bm = bmesh.from_edit_mesh(obj.data)
-        uv_layer = bm.loops.layers.uv.active
-        if uv_layer is None:
+        uvLayer = bm.loops.layers.uv.active
+        if uvLayer is None:
             operator.report({'ERROR'}, "The object does not have an active UV map!")
             return False
 
-        selected_faces = [face for face in bm.faces if face.select]
-        if selected_faces is None or selected_faces == []:
+        selectedFaces = [face for face in bm.faces if face.select]
+        if selectedFaces is None or selectedFaces == []:
             operator.report({'ERROR'}, "No face selected!")
             return False
             
-        face = selected_faces[0]
+        face = selectedFaces[0]
 
-        uv_coords = [loop[uv_layer].uv.copy() for loop in face.loops]
+        uvCoords = [loop[uvLayer].uv.copy() for loop in face.loops]
         trim = context.scene.trim_collection.add()
-        trim.init(uv_coords)
+        trim.init(uvCoords, len(context.scene.trim_collection))
 
     @classmethod
     def delete_trim(cls, context, operator):
@@ -80,160 +101,55 @@ class Trimmer():
 class UVCoord(bpy.types.PropertyGroup):
     uv: bpy.props.FloatVectorProperty(size=2)
 
-    def get_vector(self):
+    def getVector(self):
         return Vector(self.uv)
 
 class Trim(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
-    uv_coords: bpy.props.CollectionProperty(type=UVCoord)
+    uvCoords: bpy.props.CollectionProperty(type=UVCoord)
 
-    def init(self, uv_coords):
-        self.name = "NewTrim"
-        self.set_uv_coords(self.compact_points(uv_coords))
+    def init(self, uvCoords, index):
+        self.name = f"Trim {index}"
+        self.setUvCoords(compactPoints(uvCoords))
 
-    def __init__(self, uv_coords):
-        self.init(uv_coords)
+    def __init__(self, uvCoords, index=1):
+        self.init(uvCoords, index)
 
-    def set_uv_coords(self, uv_coords):
-        self.uv_coords.clear()
+    def setUvCoords(self, uvCoords):
+        self.uvCoords.clear()
         
-        for coord in uv_coords:
-            uv_coord_item = self.uv_coords.add()
-            uv_coord_item.uv = coord.copy()
+        for coord in uvCoords:
+            uvCoordItem = self.uvCoords.add()
+            uvCoordItem.uv = coord.copy()
 
-    def get_uv_coords(self):
+    def getUvCoords(self):
         arr = []
 
-        for coord in self.uv_coords:
-            arr.append(coord.get_vector())
+        for coord in self.uvCoords:
+            arr.append(coord.getVector())
         
         return arr
 
-    @staticmethod 
-    def compare(x1, x2):
-        EPSILON = 1e-6
-        difference = x1-x2
-        if abs(difference) < EPSILON:
-            return 0
-        if difference < -EPSILON:
-            return -1
-        if difference > EPSILON:
-            return 1
-        raise ArithmeticError(f"Values {x1}, {x2} don't respond to our laws of math!")
+    @staticmethod
+    def uvCoordsForMesh(uvCoords, meshCoords):
+        print("uvCoordsForMesh(uvCoords, meshCoords)")
+        print(uvCoords)
+        print(meshCoords)
+        from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights
+
+        boundary = boundaryVertices(meshCoords)
+        print(f"\nBoundary: {boundary}\n")
+        weights = mvcWeights(boundary, meshCoords)
+        print(f"weights: {weights}\n")
+        weighted = applyMvcWeights(uvCoords, weights)
+
+        return weighted
 
     @staticmethod
-    def deepCompare(a1, a2):
-        try:
-            if len(a1) != len(a2):
-                return False
-            
-            for i in range(len(a1)):
-                elementCompare = deepCompare(a1[i], a2[i])
-                if elementCompare > 0:
-                    return 1
-                if elementCompare < 0:
-                    return -1
-            return 0
-        except:
-            return compare(a1, a2)
+    def parseMeshCoordinates(faces):
+        mesh = []
 
-    @staticmethod
-    def vectorAreEqual(v1, v2):
-        if len(v1) != len(v2):
-            return False
+        for face in faces:
+            mesh.append([loop.vert.co for loop in face.loops])
 
-        for i in range(len(v1)):
-            if Trim.compare(v1[i], v2[i]) != 0:
-                return False
-        
-        return True
-
-    @staticmethod
-    def is_collinear(p1, p2, p3):
-        v1 = p2 - p1
-        v2 = p3 - p2
-
-        for i in range(len(v1)):
-            if v1[i] != 0 or v2[i] != 0:
-                return Trim.vectorAreEqual(v1 * v2[i], v2 * v1[i])
-
-        return Trim.vectorAreEqual(scaled_v1, scaled_v2)
-
-    @staticmethod
-    def point_is_collinear(points, index):
-        p1 = points[(index - 1) % len(points)]
-        p2 = points[index]
-        p3 = points[(index + 1) % len(points)]
-
-        return Trim.is_collinear(p1, p2, p3)
-
-    @staticmethod
-    def compact_points(points):
-        if len(points) < 3:
-            return points
-
-        compacted = []
-
-        for i in range(len(points)):
-            if not Trim.point_is_collinear(points, i):
-                compacted.append(points[i])
-        
-        return compacted
-
-    @staticmethod
-    def get_uv_coords_for_face(uv_coords, face_coords):
-        noncollinear_indexes = []
-        collinear_indexes_neighbours = []
-        collinearity = []
-
-        # Sort points by collinearity
-        for i in range(len(face_coords)):
-            if Trim.point_is_collinear(face_coords, i):
-                collinearity.append(True)
-            else:
-                collinearity.append(False)
-                noncollinear_indexes.append(i)
-
-        new_uv_coords = []
-        for coord in uv_coords:
-            new_uv_coords.append(coord)
-
-        if len(noncollinear_indexes) == len(collinearity):
-            return new_uv_coords
-
-        # Find each point's noncollinear neighbours
-        noncollinear_neighbours = []
-        prevI = len(noncollinear_indexes)-1
-        nextI = 0
-        for i in range(len(face_coords)):
-            if not collinearity[i]:
-                nextI = (nextI + 1) % len(noncollinear_indexes)
-                noncollinear_neighbours.append([prevI, nextI])
-                prevI = (prevI + 1) % len(noncollinear_indexes)
-            else:
-                noncollinear_neighbours.append([prevI, nextI])
-
-        inserted = 0
-        firstEdge = True
-        for i in range(len(face_coords)):
-            prevI, nextI = noncollinear_neighbours[i]
-            if nextI != 0: 
-                firstEdge = False
-            
-            if not collinearity[i]:
-                continue
-
-            smallDist = math.dist(face_coords[noncollinear_indexes[prevI]], face_coords[i])
-            fullDist = math.dist(face_coords[noncollinear_indexes[prevI]], face_coords[noncollinear_indexes[nextI]])
-
-            uv_vector = uv_coords[nextI] - uv_coords[prevI]
-
-            newPoint = uv_coords[prevI] + uv_vector * (smallDist / fullDist)
-            index = (prevI + inserted + 1)
-            if firstEdge and index == len(new_uv_coords): index = inserted
-
-            new_uv_coords.insert(index, newPoint)
-
-            inserted += 1
-
-        return new_uv_coords
+        return mesh

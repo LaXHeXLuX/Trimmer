@@ -1,6 +1,56 @@
-import numpy as np
+# List operations
 
-# standard utilities
+def distance(v):
+    dist2 = 0
+    for el in v:
+        dist2 += el ** 2
+    return dist2 ** 0.5
+
+def multiply(v, scalar):
+    if not hasattr(v, '__iter__'):
+        return v * scalar
+    
+    scaledArr = []
+    for el in v:
+        scaledArr.append(multiply(el, scalar))
+
+    return scaledArr
+
+def add(v1, v2):
+    if len(v1) > len(v2):
+        v1, v2 = v2, v1
+    
+    v3 = []
+    for i in range(len(v1)):
+        v3.append(v1[i] + v2[i])
+    for j in range(len(v1), len(v2)):
+        v3.append(v2[j])
+
+    return v3
+
+def subtract(arr1, arr2):
+    return add(arr1, multiply(arr2, -1))
+
+def normalise(v):
+    return multiply(v, 1 / distance(v))
+
+def crossProduct(v1, v2):
+    if len(v1) == 2 and len(v2) == 2:
+        return [0, 0, v1[0] * v2[1] - v1[1] * v2[0]]
+
+    if len(v1) != len(v2):
+        raise Exception(f"Input arrays ({v1}, {v2}) must be of equal length!")
+
+    if len(v1) != 3 or len(v2) != 3:
+        raise Exception(f"Input arrays ({v1}, {v2}) must be length 2 or 3!")
+    
+    return [
+        v1[1] * v2[2] - v1[2] * v2[1],
+        v1[2] * v2[0] - v1[0] * v2[2],
+        v1[0] * v2[1] - v1[1] * v2[0]
+    ]
+
+# Standard utilities
 
 coefficient = 6
 
@@ -58,12 +108,12 @@ def roundList(arr):
     return newArr
 
 def isCollinear(p1, p2, p3):
-    v1 = p2 - p1
-    v2 = p3 - p2
+    v1 = subtract(p2, p1)
+    v2 = subtract(p3, p2)
 
     for i in range(len(v1)):
         if v1[i] != 0 or v2[i] != 0:
-            return deepCompare(v1 * v2[i], v2 * v1[i]) == 0
+            return deepCompare(multiply(v1, v2[i]), multiply(v2, v1[i])) == 0
 
     return deepCompare(v1, v2) == 0
 
@@ -86,239 +136,26 @@ def compactPoints(points):
     
     return compacted
 
-def polygonsToEdges(polygons):
-    edges = {}
-
-    for poly in polygons:
-        for i in range(len(poly)):
-            edge = tuple(sorted((tuple(poly[i]), tuple(poly[(i + 1) % len(poly)]))))
-            if edge in edges:
-                edges[edge] += 1
-            else:
-                edges[edge] = 1
-
-    return edges
-
-def boundaryVertices(polygons):
-    edges = polygonsToEdges(polygons)
-    boundaryEdges = [edge for edge in edges if edges[edge] == 1]
-    edgeMap = {}
-    for a, b in boundaryEdges:
-        edgeMap.setdefault(a, []).append(b)
-        edgeMap.setdefault(b, []).append(a)
-
-    # verify edge map
-    for key in edgeMap:
-        if len(edgeMap[key]) != 2:
-            raise Exception(f"Vertex {key} has {len(edgeMap[key])} unique sides, must be 2!")
-
-    # Order the boundary edges into a continuous loop
-    first = next(iter(edgeMap))
-    boundary = []
-    current = first
-    nextVertex = -1
-
-    while nextVertex != first:
-        nextVertex = edgeMap[current][0]
-        edgeMap[nextVertex].remove(current)
-        boundary.append(list(current))
-        current = nextVertex
-
-    return deepToList(compactPoints(np.array(boundary)))
-
-# MVC
-
-def normalise(arr):
-    newArr = []
-    s = sum(arr)
-    for a in arr:
-        newArr.append(a / s)
-    return newArr
-
-def mvcPointOnVertex(n, index):
-    arr = []
-    for i in range(n):
-        arr.append(float(0))
-    arr[index] = float(1)
-    return arr
-
-def mvcPointOnEdgeWeight(n, distance1, distance2, index1):
-    arr = []
-    for i in range(n):
-        arr.append(0)
-    
-    index2 = (index1 + 1) % n
-    dist = distance1 + distance2
-    arr[index1] = distance2 / dist
-    arr[index2] = distance1 / dist
-    return arr
-
-def mvcPointWeight(polygon, point):
-    distances = []
-    tanThetas = []
-
-    for i in range(len(polygon)):
-        vertex = polygon[i]
-        v1 = np.array(vertex) - np.array(point)
-        v1Dist = np.linalg.norm(v1)
-
-        if compare(v1Dist, 0) == 0:
-            return mvcPointOnVertex(len(polygon), i)
-
-        nextVertex = polygon[(i+1) % len(polygon)]
-        v2 = np.array(nextVertex) - np.array(point)
-        v2Dist = np.linalg.norm(v2)
-
-        if compare(v2Dist, 0) == 0:
-            return mvcPointOnVertex(len(polygon), (i+1) % len(polygon))
-        cos = np.dot(v1, v2) / (v1Dist * v2Dist)
-
-        if compare(cos, -1) == 0:
-            return mvcPointOnEdgeWeight(len(polygon), v1Dist, v2Dist, i)
-
-        theta = np.arccos(round(np.dot(v1, v2) / (v1Dist * v2Dist), 6))
-
-        distances.append(v1Dist)
-        tanThetas.append(np.tan(theta / 2))
-
-    weight = []
-    for i in range(len(polygon)):
-        prevTan = tanThetas[(i-1) % len(tanThetas)]
-        tan = tanThetas[i]
-        w = (prevTan + tan) / distances[i]
-        weight.append(round(w, 6))
-
-    return normalise(weight)
-
-def mvcWeights(polygon, points):
-    weights = []
+def padPoints(points, length):
+    newPoints = []
     for point in points:
-        try:
-            iterator = iter(point[0])
-            weights.append(mvcWeights(polygon, point))
-        except:
-            weights.append(mvcPointWeight(polygon, point))
+        newPoint = []
+        i = 0
+        while len(newPoint) < length:
+            if i < len(point):
+                newPoint.append(point[i])
+            else:   
+                newPoint.append(1)
+            i += 1
+        newPoints.append(newPoint)
+    return newPoints
 
-    return deepToList(weights)
+def normal(P1, P2, P3):
+    V1 = subtract(P2, P1)
+    V2 = subtract(P3, P2)
+    normal = crossProduct(V1, V2)
 
-def applyMvcWeight(polygon, weights):
-    newX = 0
-    newY = 0
-    
-    for j in range(len(polygon)):
-        x, y = polygon[j]
+    if distance(normal) > 0:
+        normal = normalise(normal)
         
-        newX += weights[j] * x
-        newY += weights[j] * y
-
-    return [newX, newY]
-
-def applyMvcWeights(polygon, weights):
-    newPositions = []
-    
-    for i in range(len(weights)):
-        try:
-            newPositions.append(applyMvcWeights(polygon, weights[i]))
-        except:
-            newPositions.append(applyMvcWeight(polygon, weights[i]))
-    
-    return newPositions
-
-# Testing
-
-def test(operation, inputs, output):
-    result = operation(*inputs)
-    if deepCompare(result, output) != 0:
-        raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
-
-def testMVC(oldPolygon, inputPoints, newPolygon, outputPoints):
-    weights = mvcWeights(oldPolygon, inputPoints)
-    result = applyMvcWeights(newPolygon, weights)
-    if deepCompare(result, outputPoints) != 0:
-        raise Exception(f"Equals test failed: {result} != {outputPoints}")
-
-def runBoundaryVerticesTest():
-    test(
-        boundaryVertices, 
-        [[[[0, 0], [0, 1], [1, 1], [1, 0]]]], 
-        [[0, 0], [0, 1], [1, 1], [1, 0]]
-    )
-    test(
-        boundaryVertices, 
-        [[
-            [[0, 0], [0, 1], [1, 0]],
-            [[0, 1], [1, 1], [1, 0]]
-        ]], 
-        [[0, 0], [0, 1], [1, 1], [1, 0]]
-    )
-    test(
-        boundaryVertices, 
-        [[
-            [[0, 0], [0, 1], [1, 1], [1, 0]],
-            [[1, 1], [2, 1], [2, 0], [1, 0]]
-        ]], 
-        [[0, 0], [0, 1], [2, 1], [2, 0]]
-    )
-
-def runMVCTest():
-    testMVC(
-        [[0, 0], [0, 1], [1, 1], [1, 0]],
-        [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0.5], [0.5, 1], [1, 0.5], [0.5, 0], [0.5, 0.5], [0.2, 0.8], [0.7, 0.3]],
-        [[0, 0], [0, 1], [1, 1], [1, 0]],
-        [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0.5], [0.5, 1], [1, 0.5], [0.5, 0], [0.5, 0.5], [0.2, 0.8], [0.7, 0.3]]
-    )
-    testMVC(
-        [[-2, -1], [-2, 1], [2, 1], [2, -1]],
-        [[-1, 0], [0, 0], [1, 0]],
-        [[-2, -1], [-2, 3], [2, 3], [2, -1]],
-        [[-1, 1], [0, 1], [1, 1]]
-    )
-    testMVC(
-        [[0, 0], [0, 2], [5, 2], [5, 0]],
-        [[[0, 0], [0, 2], [1, 1], [2, 2], [2, 0]], [[2, 2], [5, 2], [5, 0], [2, 0]]],
-        [[0, 0], [0, 4], [15, 4], [15, 0]],
-        [[[0, 0], [0, 4], [3, 2], [6, 4], [6, 0]], [[6, 4], [15, 4], [15, 0], [6, 0]]]
-    )
-
-def runTests():
-    # compare
-    test(compare, [1, 1], 0)
-    test(compare, [-10e100, 10e100], -1)
-    test(compare, [2, 0], 1)
-
-    # deepCompare
-    test(deepCompare, [0, 0], 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 3]], 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 4]], -1)
-    test(deepCompare, [[[], 2, [[0], 5]], [[], 2, [[0], 5]]], 0)
-    test(deepCompare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
-
-    # roundList
-    test(roundList, [[1]], [1])
-    test(roundList, [[0, 0.999999999, 2.000000001]], [0, 1, 2])
-
-    polygon = [[0, 0], [1, 2], [2, 4], [2, 3], [2, 1], [2, 0], [1, 0]]
-
-    # pointIsCollinear
-    test(pointIsCollinear, [np.array(polygon), 0], False)
-    test(pointIsCollinear, [np.array(polygon), 1], True)
-
-    # compactPoints
-    test(
-        compactPoints, 
-        [np.array([[0, 0], [2, 4], [2, 0]])], 
-        [[0, 0], [2, 4], [2, 0]]
-    )
-    test(
-        compactPoints, 
-        [np.array([[0, 0], [1, 2], [2, 4], [2, 3], [2, 1], [2, 0], [1, 0]])], 
-        [[0, 0], [2, 4], [2, 0]]
-    )
-
-    runBoundaryVerticesTest()
-
-    runMVCTest()
-
-
-if __name__ == "__main__":
-    runTests()
+    return normal

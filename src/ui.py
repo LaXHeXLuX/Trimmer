@@ -14,10 +14,14 @@ class TrimmerUI(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.ao", text="Test").button_action = "TEST"
-        layout.row()
 
-        for index, trim in enumerate(context.scene.trim_collection):
+        trims = context.scene.trim_collection
+
+        if len(trims) > 0:
+            row = layout.row()
+            row.label(text="Trims:")
+
+        for index, trim in enumerate(trims):
             row = layout.row()
             row.prop(trim, "name", text="")
             
@@ -31,6 +35,74 @@ class TrimmerUI(bpy.types.Panel):
 
         op = layout.operator("object.ao", text="Add trim")
         op.button_action = "ADD_TRIM"
+
+class TrimOptions(bpy.types.PropertyGroup):
+    items = [
+        ('FILL', "Fill", "Fill the trim"),
+        ('FIT_X', "Fit X", "Fit inside the trim horisontally"),
+        ('FIT_Y', "Fit Y", "Fit inside the trim vertically"),
+        ('FIT', "Fit", "Fit inside the trim"),
+    ]
+
+    fitOptions: bpy.props.EnumProperty(
+        name = "",
+        description = "Select how to map the selected face(s) to the trim",
+        items = items,
+        default = 'FILL'
+    )
+
+    rotation: bpy.props.FloatProperty(
+        name = "Rotation",
+        description = "Rotate the UV",
+        default = 0.0,
+        min = 0.0,
+        max =360.0,
+        update = lambda self, context: print("rotation lambda")#update_position(self, context, 'x')
+    )
+
+    posX: bpy.props.FloatProperty(
+        name = "X Position",
+        description = "Move the UV along X-axis",
+        default = 0.0,
+        min = -10.0,
+        max = 10.0,
+        update = lambda self, context: print("posX lambda")#update_position(self, context, 'x')
+    )
+
+    posY: bpy.props.FloatProperty(
+        name = "Y Position",
+        description = "Move the UV along Y-axis",
+        default = 0.0,
+        min = -10.0,
+        max = 10.0,
+        update = lambda self, context: print("posY lambda")#update_position(self, context, 'y')
+    )
+
+class ApplyTrimSettings(bpy.types.Panel):
+    bl_label = "Settings"
+    bl_idname = "TRIMMER_PT_APPLY_TRIM_SETTINGS"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Trimmer"
+
+    @classmethod
+    def get_instance(self):
+        return self
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        layout.label(text="Trim fitting options:")
+        layout.prop(scene.trim_options, "fitOptions")
+        layout.row()
+
+        fitOption = scene.trim_options.fitOptions
+        if fitOption == 'FIT_X' or fitOption == 'FIT':
+            layout.label(text="posY:")
+            layout.prop(scene.trim_options, "posY")
+        if fitOption == 'FIT_Y' or fitOption == 'FIT':
+            layout.label(text="posX:")
+            layout.prop(scene.trim_options, "posX")
 
 class AbstractOperator(bpy.types.Operator):
     bl_idname = "object.ao"

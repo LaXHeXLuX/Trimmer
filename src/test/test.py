@@ -8,3 +8,6 @@ if __name__ == "__main__":
     print(f"O1: {o1}")
     print(f"O2: {o2}")
     print(f"O2 / O1 = {o2 / o1}")
+    
+    for i in range(10):
+        print(f"{i} ** 0.5: {i ** 0.5}")

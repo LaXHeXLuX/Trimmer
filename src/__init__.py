@@ -12,19 +12,19 @@ import bpy
 from . import ui
 from . import trimmer
 
+classes = [ui.AbstractOperator, ui.TrimOptions, ui.TrimmerUI, ui.ApplyTrimSettings, trimmer.UVCoord, trimmer.Trim]
+
 def register():
-    bpy.utils.register_class(ui.AbstractOperator)
-    bpy.utils.register_class(ui.TrimmerUI)
-    bpy.utils.register_class(trimmer.UVCoord)
-    bpy.utils.register_class(trimmer.Trim)
+    for c in classes:
+        bpy.utils.register_class(c)
     bpy.types.Scene.trim_collection = bpy.props.CollectionProperty(type=trimmer.Trim)
+    bpy.types.Scene.trim_options = bpy.props.PointerProperty(type=ui.TrimOptions)
 
 def unregister():
-    bpy.utils.unregister_class(ui.AbstractOperator)
-    bpy.utils.unregister_class(ui.TrimmerUI)
+    del bpy.types.Scene.trim_options
     del bpy.types.Scene.trim_collection
-    bpy.utils.unregister_class(trimmer.Trim)
-    bpy.utils.unregister_class(trimmer.UVCoord)
+    for c in classes[::-1]:
+        bpy.utils.register_class(c)
 
 if __name__ == "__main__":
     register()
