@@ -9,46 +9,23 @@ else:
 class UnwrapException(Exception):
     pass
 
-class Face:
-    def __init__(self, vertices):
-        self.vertices = vertices
+def sortEdges(edges):
+    edgesCopy = []
+    for edge in edges:
+        edgesCopy.append(edge)
+
+    newEdges = [edgesCopy.pop(0)]
+    while edgesCopy != []:
+        v = newEdges[len(newEdges) - 1][1]
+        i = 0
+        while edgesCopy[i][0] != v:
+            i += 1
+        newEdges.append(edgesCopy.pop(i))
     
-    @classmethod
-    def initEdges(cls, edges):
-        return cls(cls.vertsFromEdges(edges))
+    if newEdges[0][0] != newEdges[len(newEdges) - 1][1]:
+        raise Exception(f"Last edge {newEdges[len(newEdges) - 1]} should connect to first edge {newEdges[0]}")
 
-    def getNumpyVertices(self):
-        verts = []
-        for v in self.vertices:
-            verts.append(np.array(v))
-        return verts
-
-    @staticmethod
-    def sortEdges(edges):
-        edgesCopy = []
-        for edge in edges:
-            edgesCopy.append(edge)
-
-        newEdges = [edgesCopy.pop(0)]
-        while edgesCopy != []:
-            v = newEdges[len(newEdges) - 1][1]
-            i = 0
-            while edgesCopy[i][0] != v:
-                i += 1
-            newEdges.append(edgesCopy.pop(i))
-        
-        if newEdges[0][0] != newEdges[len(newEdges) - 1][1]:
-            raise Exception(f"Last edge {newEdges[len(newEdges) - 1]} should connect to first edge {newEdges[0]}")
-
-        return newEdges
-
-    @staticmethod
-    def vertsFromEdges(edges):
-        sortedEdges = Face.sortEdges(edges)
-        vertices = []
-        for edge in edges:
-            vertices.append(edge[0])
-        return vertices
+    return newEdges
 
 def deepRound(arr):
     try:
@@ -99,16 +76,15 @@ def rotationMatrixFromNormals(v1, v2):
     return R
 
 def faceNormal(face, indexIncreasing):
-    vertices = face.vertices
-    P1, P2, P3 = vertices[0], vertices[1], vertices[2]
+    P1, P2, P3 = face[0], face[1], face[2]
     if not indexIncreasing:
-        P1, P3 = vertices[2], vertices[0]
+        P1, P3 = face[2], face[0]
     return normal(P1, P2, P3)
 
 def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
     print(f"R:\n{R}")
-    return np.dot(np.array(face.vertices), R.T)
+    return np.dot(np.array(face), R.T)
 
 def sharedEdge(f1, f2):
     for i in range(len(f1)):
@@ -200,7 +176,7 @@ def transformFace(face, matrix):
     paddedFace = padPoints(face, len(matrix[0]))
     newFace = []
     for vertex in paddedFace:
-        newFace.append(matrix @ np.array(vertex))
+        newFace.append(deepToList(matrix @ np.array(vertex)))
     return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
@@ -246,8 +222,9 @@ def unwrap(mesh):
             stack.append((i, neighbourIndexIncreasing, index))
             print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
-        F = Face(copy.deepcopy(mesh[index]))
-        rotatedFace = Face(flatFaceCoordinates(F, indexIncreasing)).vertices
+        F = copy.deepcopy(mesh[index])
+        print(f"F: {F}")
+        rotatedFace = deepToList(flatFaceCoordinates(F, indexIncreasing))
         print(f"rotatedFace before padding: {rotatedFace}")
         rotatedFace = padPoints(rotatedFace, 2)
         print(f"rotatedFace {index}: {rotatedFace}")
