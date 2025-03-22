@@ -51,8 +51,6 @@ def boundaryVertices(polygons, edges = None):
     firstFace = compactPoints(polygons[0])
     firstFaceNormal = normal(firstFace[0], firstFace[1], firstFace[2])
     boundaryNormal = normal(boundary[0], boundary[1], boundary[2])
-    print(f"firstFaceNormal: {firstFaceNormal}")
-    print(f"boundaryNormal: {boundaryNormal}")
     if boundaryNormal != firstFaceNormal:
         boundary.reverse()
     return boundary
@@ -194,8 +192,28 @@ def minMaxCoords(points):
             maxY = point[1]
     return [minX, minY, maxX, maxY]
 
-def containmentMatrix(innerPolygon, outerPolygon):
-    innerPolygonCoords = minMaxCoords(innerPolygon)
+def minMaxCoordsPolygons(polygons):
+    minX, minY = polygons[0][0]
+    maxX, maxY = polygons[0][0]
+
+    for polygon in polygons:
+        currentMinMax = minMaxCoords(polygon)
+        if currentMinMax[0] < minX:
+            minX = currentMinMax[0]
+        if currentMinMax[1] < minY:
+            minY = currentMinMax[1]
+        if currentMinMax[2] > maxX:
+            maxX = currentMinMax[2]
+        if currentMinMax[3] > maxY:
+            maxY = currentMinMax[3]
+
+    return [minX, minY, maxX, maxY]
+
+def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = True):
+    if not boundByX and not boundByY:
+        raise Exception("Cannot contain without bounds!")
+
+    innerPolygonCoords = minMaxCoordsPolygons(innerPolygons)
     outerPolygonCoords = minMaxCoords(outerPolygon)
 
     innerDistanceX = innerPolygonCoords[2] - innerPolygonCoords[0]
@@ -203,12 +221,13 @@ def containmentMatrix(innerPolygon, outerPolygon):
     outerDistanceX = outerPolygonCoords[2] - outerPolygonCoords[0]
     outerDistanceY = outerPolygonCoords[3] - outerPolygonCoords[1]
 
-    innerRatio = innerDistanceX / innerDistanceY
-    outerRatio = outerDistanceX / outerDistanceY
+    innerWidthRatio = innerDistanceX / innerDistanceY
+    outerWidthRatio = outerDistanceX / outerDistanceY
 
-    scale = outerDistanceX / innerDistanceX
-    if innerRatio < outerRatio:
+    if not boundByX or innerWidthRatio < outerWidthRatio:
         scale = outerDistanceY / innerDistanceY
+    else:
+        scale = outerDistanceX / innerDistanceX
 
     S = np.array([
         [scale, 0],
@@ -223,55 +242,23 @@ def containmentMatrix(innerPolygon, outerPolygon):
 
     return T
 
-def transformPolygon(polygon, matrix):
-    paddedPolygon = padPoints(polygon, len(matrix[0]))
-    newPolygon = []
-    for vertex in paddedPolygon:
-        newPolygon.append(matrix @ vertex)
-    return padPoints(newPolygon, len(matrix[0]) - 1)
+def transformPolygons(polygons, matrix):
+    paddedPolygons = padPoints(polygons, len(matrix[0]))
+    newPolygons = []
+    for i in range(len(paddedPolygons)):
+        newPolygons.append([])
+        for vertex in paddedPolygons[i]:
+            newPolygons[i].append(deepToList(matrix @ np.array(vertex)))
+    return padPoints(newPolygons, len(matrix[0]) - 1)
 
-def containedPolygon(innerPolygon, outerPolygon):
-    matrix = containmentMatrix(innerPolygon, outerPolygon)
-    return deepToList(transformPolygon(innerPolygon, matrix))
+def containedPolygons(innerPolygons, outerPolygon, boundByX = True, boundByY = True):
+    matrix = containmentMatrix(innerPolygons, outerPolygon, boundByX, boundByY)
+    return roundList(deepToList(transformPolygons(innerPolygons, matrix)))
+
+def containedPolygon(innerPolygon, outerPolygon, boundByX = True, boundByY = True):
+    return containedPolygons([innerPolygon], outerPolygon, boundByX, boundByY)[0]
 
 # Testing
-
-def arraysAreSimilar(arr1, arr2):
-    if len(arr1) != len(arr2):
-        return False
-
-    if arr1 == arr2:
-        return True
-
-    for i in range(len(arr1)):
-        testArr = arr1[i:] + arr1[:i]
-        if testArr == arr2 or testArr[::-1] == arr2:
-            return True
-    
-    return False
-
-def test(operation, inputs, output):
-    result = operation(*inputs)
-    if deepCompare(result, output) != 0:
-        raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
-
-def runListOperationTest():
-    test(add, [[], []], [])
-    test(add, [[0], [0]], [0])
-    test(add, [[1], [2]], [3])
-    test(add, [[1, 2], [-1, 2]], [0, 4])
-
-    test(subtract, [[], []], [])
-    test(subtract, [[0], [0]], [0])
-    test(subtract, [[3], [2]], [1])
-    test(subtract, [[1, 2, 3], [3, 2, 1]], [-2, 0, 2])
-
-    test(multiply, [[], 0], [])
-    test(multiply, [[], 10], [])
-    test(multiply, [[0], 10], [0])
-    test(multiply, [[1], 10], [10])
-    test(multiply, [[1, 2, 3], 2], [2, 4, 6])
-
 def runBoundaryVerticesTest():
     def testBoundaryVertices(inputPolygons, output):
         result = boundaryVertices(inputPolygons)
@@ -305,9 +292,9 @@ def runBoundaryVerticesTest():
     testBoundaryVertices(
         [
             [(2, 1), (-1, 1), (-1, 0), (-1, -1), (1, -1)], 
-            [(3.7888543819998324, 0.10557280900008403), (2, 1), (1, -1), (2.7888543819998324, -1.8944271909999164)]
+            [(3.7888, 0.1055), (2, 1), (1, -1), (2.7888, -1.8944)]
         ], 
-        [(2, 1), (-1, 1), (-1, -1), (1, -1), (2.7888543819998324, -1.8944271909999164), (3.7888543819998324, 0.10557280900008403)]
+        [(2, 1), (-1, 1), (-1, -1), (1, -1), (2.7888, -1.8944), (3.7888, 0.1055)]
     )
 
     # Tips
@@ -379,57 +366,13 @@ def runPolygonContainmentTest():
         [[(0, 1), (1, 2), (0, 4), (3, 2), (3, 3), (4, 2), (6, 2), (5, 1), (3, 1), (2, 2), (1, 1)], [(-3, -4), (-3, 0), (0, 0), (0, -4)]],
         [(-3, -4), (-2.5, -3.5), (-3, -2.5), (-1.5, -3.5), (-1.5, -3), (-1, -3.5), (0, -3.5), (-0.5, -4), (-1.5, -4), (-2, -3.5), (-2.5, -4)]
     )
+    test(
+        containedPolygons, 
+        [[[(2, 1), (-1, 1), (-1, 0), (-1, -1), (1, -1)], [(3.78885438, 0.10557281), (2, 1), (1, -1), (2.78885438, -1.89442719)]], [(0, 0), (0, 1), (1, 1), (1, 0)]],
+        [[(0.626455, 0.604409), (0, 0.604409), (0, 0.395591), (0, 0.186773), (0.417636, 0.186773)], [(1, 0.417636), (0.626455, 0.604409), (0.417636, 0.186773), (0.791182, 0)]]
+    )
 
 def runTests():
-    # arraysAreSimilar
-    test(arraysAreSimilar, [[], []], True)
-    test(arraysAreSimilar, [[], [1]], False)
-    test(arraysAreSimilar, [[1], [2]], False)
-    test(arraysAreSimilar, [(1, 2), (2, 1)], True)
-    test(arraysAreSimilar, [[1, 2, 3], [1, 3, 2]], True)
-    test(arraysAreSimilar, [[1, 2, 3, 4], [1, 3, 2, 4]], False)
-
-    runListOperationTest()
-
-    # compare
-    test(compare, (1, 1), 0)
-    test(compare, [-10e100, 10e100], -1)
-    test(compare, (2, 0), 1)
-
-    # deepCompare
-    test(deepCompare, (0, 0), 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 3]], 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 4]], -1)
-    test(deepCompare, [[[], 2, [[0], 5]], [[], 2, [[0], 5]]], 0)
-    test(deepCompare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
-
-    # roundList
-    test(roundList, [[1]], [1])
-    test(roundList, [[0, 0.999999999, 2.000000001]], [0, 1, 2])
-
-    polygon = [(0, 0), (1, 2), (2, 4), (2, 3), (2, 1), (2, 0), (1, 0)]
-
-    # pointIsCollinear
-    test(pointIsCollinear, [polygon, 0], False)
-    test(pointIsCollinear, [polygon, 1], True)
-
-    # compactPoints
-    test(
-        compactPoints, 
-        [[(0, 0), (2, 4), (2, 0)]], 
-        [(0, 0), (2, 4), (2, 0)]
-    )
-    test(
-        compactPoints, 
-        [[(0, 0), (1, 2), (2, 4), (2, 3), (2, 1), (2, 0), (1, 0)]], 
-        [(0, 0), (2, 4), (2, 0)]
-    )
-
-    # padPoints
-    test(padPoints, [[[0, 1, 2, 3]], 0], [[]])
-    test(padPoints, [[[0, 1, 2, 3]], 2], [(0, 1)])
-    test(padPoints, [[[]], 2], [(1, 1)])
-
     runBoundaryVerticesTest()
 
     runMVCTest()
