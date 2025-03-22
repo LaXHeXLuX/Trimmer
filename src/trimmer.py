@@ -63,7 +63,7 @@ class Trimmer():
         #        return
 
         flatMeshCoords = unwrap(meshCoords)
-        boundary = boundaryVertices(meshCoords)
+        boundary = boundaryVertices(flatMeshCoords)
         print(f"flatMeshCoords: {flatMeshCoords}\n")
 
         fitOption = context.scene.trim_options.fitOptions
