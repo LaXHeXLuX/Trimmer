@@ -20,6 +20,15 @@ class Trimmer():
         cls.currentBoundary = None
 
     @staticmethod
+    def apply(faces, uvCoords, uvLayer):
+        for i in range(len(faces)):
+            for j in range(len(faces[i].loops)):
+                UVLoop = faces[i].loops[j][uvLayer]
+                coord = uvCoords[i][j]
+                print(f"applying UV: {UVLoop.uv} = {coord}")
+                UVLoop.uv = coord
+
+    @classmethod
     def applyFaces(cls, context, faces, trim, uvLayer, operator):
         # Get adjusted UV coordinates
         meshCoords = Trim.parseMeshCoordinates(faces)
@@ -48,13 +57,13 @@ class Trimmer():
         
         print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
         print(f"uvCoords: {uvCoords}\n")
-        print(f"faces")
 
-        # Apply UV coordinates
-        for face, uvFace in zip(faces, uvCoords):
-            for loop, coord in zip(face.loops, uvFace):
-                print(f"applying UV: {loop[uvLayer].uv} = {coord}")
-                loop[uvLayer].uv = coord
+        apply(faces, uvCoords, uvLayer)
+
+        currentApply = fitOption
+        currentFaces = faces
+        currentUV = uvCoords
+        currentBoundary = boundary(uvCoords)
 
     @classmethod
     def apply_texture(cls, context, operator):
