@@ -7,17 +7,19 @@ from .multiple_face_unwrap import unwrap
 from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints
 
 class Trimmer():
-    currentApply = None
+    currentApplyOption = None
     currentFaces = None
-    currentUV = None
+    flatMeshCoords = None
     currentBoundary = None
+    currentUVLayer = None
 
     @classmethod
     def clear(cls, context):
-        cls.currentApply = None
+        cls.currentApplyOption = None
         cls.currentFaces = None
-        cls.currentUV = None
+        cls.flatMeshCoords = None
         cls.currentBoundary = None
+        cls.currentUVLayer = None
 
     @staticmethod
     def apply(faces, uvCoords, uvLayer):
@@ -60,10 +62,11 @@ class Trimmer():
 
         apply(faces, uvCoords, uvLayer)
 
-        currentApply = fitOption
-        currentFaces = faces
-        currentUV = uvCoords
-        currentBoundary = boundary(uvCoords)
+        cls.currentApplyOption = fitOption
+        cls.currentFaces = faces
+        cls.flatMeshCoords = flatMeshCoords
+        cls.currentBoundary = boundary(uvCoords)
+        cls.currentUVLayer = uvLayer
 
     @classmethod
     def apply_texture(cls, context, operator):
