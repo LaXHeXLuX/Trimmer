@@ -87,9 +87,10 @@ class Trimmer():
 
         try:
             bm = cls.getBmesh(context)
-            uvLayer = cls.getUvLayer()
+            uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
             operator.report({'ERROR'}, error)
+            return
 
         selectedFaces = [face for face in bm.faces if face.select]
         if selectedFaces is None or selectedFaces == []:
