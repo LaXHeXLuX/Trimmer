@@ -4,7 +4,7 @@ import math
 from mathutils import Vector
 from .utils import *
 from .multiple_face_unwrap import unwrap
-from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights
+from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints
 
 class Trimmer():
     currentApply = None
