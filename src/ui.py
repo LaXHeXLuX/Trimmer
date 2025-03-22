@@ -110,12 +110,16 @@ class AbstractOperator(bpy.types.Operator):
     index: bpy.props.IntProperty()
 
     def execute(self, context):
-        if self.button_action == "TEST":
-            Trimmer.test(context, self)
-        elif self.button_action == "APPLY_TEXTURE":
+        if self.button_action == 'APPLY_TEXTURE':
             Trimmer.apply_texture(context, self)
-        elif self.button_action == "ADD_TRIM":
+        elif self.button_action == 'ADD_TRIM':
             Trimmer.add_trim(context, self)
-        elif self.button_action == "DELETE_TRIM":
+        elif self.button_action == 'DELETE_TRIM':
             Trimmer.delete_trim(context, self)
+        elif self.button_action == 'MIRROR_COORDS':
+            Trimmer.mirror_coords(context, self)
+        elif self.button_action == 'CONFIRM_TRIM':
+            ApplyTrimSettings.confirmTrim()
+        else:
+            raise Exception(f"Unknown button action: {self.button_action}")
         return {'FINISHED'}
