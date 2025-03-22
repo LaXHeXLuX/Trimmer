@@ -4,6 +4,7 @@ import math
 from mathutils import Vector
 from .utils import *
 from .multiple_face_unwrap import unwrap
+from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights
 
 class Trimmer():
 
@@ -140,12 +141,9 @@ class Trim(bpy.types.PropertyGroup):
         print("uvCoordsForMesh(uvCoords, meshCoords)")
         print(uvCoords)
         print(meshCoords)
-        from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights
 
         boundary = boundaryVertices(meshCoords)
-        print(f"\nBoundary: {boundary}\n")
         weights = mvcWeights(boundary, meshCoords)
-        print(f"weights: {weights}\n")
         weighted = applyMvcWeights(uvCoords, weights)
 
         return weighted
