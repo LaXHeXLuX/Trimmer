@@ -67,17 +67,7 @@ class Trimmer():
         print(f"flatMeshCoords: {flatMeshCoords}\n")
 
         fitOption = context.scene.trim_options.fitOptions
-        uvCoords = None
-        if fitOption == 'FIT':
-            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords)
-        elif fitOption == 'FIT_X':
-            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByY=False)
-        elif fitOption == 'FIT_Y':
-            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByX=False)
-        elif fitOption == 'FILL':
-            uvCoords = Trim.uvCoordsForFill(trim.getUvCoords(), flatMeshCoords)
-        else:
-            raise Exception(f"Invalid fit option: {fitOption}")
+        uvCoords = Trim.uvCoords(trim.getUvCoords(), flatMeshCoords, fitOption)
         
         print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
         print(f"uvCoords: {uvCoords}\n")
@@ -175,6 +165,19 @@ class Trim(bpy.types.PropertyGroup):
             arr.append(coord.getVector())
         
         return arr
+
+    @staticmethod 
+    def uvCoords(uvCoords, meshCoords, fitOption):
+        if fitOption == 'FIT':
+            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords)
+        elif fitOption == 'FIT_X':
+            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByY=False)
+        elif fitOption == 'FIT_Y':
+            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByX=False)
+        elif fitOption == 'FILL':
+            return Trim.uvCoordsForFill(trim.getUvCoords(), flatMeshCoords)
+        else:
+            raise Exception(f"Invalid fit option: {fitOption}")
 
     @staticmethod
     def uvCoordsForFill(uvCoords, meshCoords):
