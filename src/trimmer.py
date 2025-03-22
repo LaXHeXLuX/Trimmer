@@ -20,7 +20,7 @@ class Trimmer():
         cls.currentBoundary = None
 
     @staticmethod
-    def applyFaces(faces, trim, uvLayer, operator):
+    def applyFaces(cls, context, faces, trim, uvLayer, operator):
         # Get adjusted UV coordinates
         meshCoords = Trim.parseMeshCoordinates(faces)
 
@@ -30,14 +30,23 @@ class Trimmer():
         #        return
 
         flatMeshCoords = unwrap(meshCoords)
+        boundary = boundaryVertices(meshCoords)
         print(f"flatMeshCoords: {flatMeshCoords}\n")
 
         fitOption = context.scene.trim_options.fitOptions
+        uvCoords = None
         if fitOption == 'FIT':
-            pass
+            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords)
+        elif fitOption == 'FIT_X':
+            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByY=False)
+        elif fitOption == 'FIT_Y':
+            uvCoords = Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByX=False)
+        elif fitOption == 'FILL':
+            uvCoords = Trim.uvCoordsForFill(trim.getUvCoords(), flatMeshCoords)
+        else:
+            raise Exception(f"Invalid fit option: {fitOption}")
         
         print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
-        uvCoords = Trim.uvCoordsForMesh(trim.getUvCoords(), flatMeshCoords)
         print(f"uvCoords: {uvCoords}\n")
         print(f"faces")
 
@@ -78,7 +87,7 @@ class Trimmer():
             operator.report({'ERROR'}, "Trim is null!")
             return
 
-        Trimmer.applyFaces(selectedFaces, trim, uvLayer, operator)
+        Trimmer.applyFaces(context, selectedFaces, trim, uvLayer, operator)
         
         bmesh.update_edit_mesh(obj.data)
 
@@ -144,8 +153,8 @@ class Trim(bpy.types.PropertyGroup):
         return arr
 
     @staticmethod
-    def uvCoordsForMesh(uvCoords, meshCoords):
-        print("uvCoordsForMesh(uvCoords, meshCoords)")
+    def uvCoordsForFill(uvCoords, meshCoords):
+        print("uvCoordsForFill(uvCoords, meshCoords)")
         print(uvCoords)
         print(meshCoords)
 
@@ -154,6 +163,15 @@ class Trim(bpy.types.PropertyGroup):
         weighted = applyMvcWeights(uvCoords, weights)
 
         return weighted
+
+    @staticmethod
+    def uvCoordsForFit(uvCoords, meshCoords, boundByX = True, boundByY = True):
+        print("uvCoordsForFit(uvCoords, meshCoords)")
+        print(uvCoords)
+        print(meshCoords)
+        from .utils2D import containedPolygons
+
+        return containedPolygons(meshCoords, uvCoords, boundByX, boundByY)
 
     @staticmethod
     def parseMeshCoordinates(faces):
