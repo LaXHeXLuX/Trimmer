@@ -53,14 +53,8 @@ class Trimmer():
                 UVLoop.uv = coord
 
     @classmethod
-    def applyFaces(cls, context, faces, trim, uvLayer, operator):
-        # Get adjusted UV coordinates
+    def applyFaces(cls, context, faces, trim, uvLayer):
         meshCoords = Trim.parseMeshCoordinates(faces)
-
-        #for i in range(len(faces)):
-        #    if len(faces[i].loops) != len(meshCoords[i]):
-        #        operator.report({'ERROR'}, f"Selected face ({len(face.loops)} vertices) must have the same number of vertices as the saved face ({len(uvCoords)} vertices)!")
-        #        return
 
         flatMeshCoords = unwrap(meshCoords)
         boundary = boundaryVertices(flatMeshCoords)
@@ -102,7 +96,7 @@ class Trimmer():
             operator.report({'ERROR'}, "Trim is null!")
             return
 
-        Trimmer.applyFaces(context, selectedFaces, trim, uvLayer, operator)
+        Trimmer.applyFaces(context, selectedFaces, trim, uvLayer)
         
         bmesh.update_edit_mesh(obj.data)
 
