@@ -7,10 +7,17 @@ from .multiple_face_unwrap import unwrap
 from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights
 
 class Trimmer():
+    currentApply = None
+    currentFaces = None
+    currentUV = None
+    currentBoundary = None
 
     @classmethod
-    def test(cls, context, operator):
-        operator.report({'INFO'}, "Test button is clicked!")
+    def clear(cls, context):
+        cls.currentApply = None
+        cls.currentFaces = None
+        cls.currentUV = None
+        cls.currentBoundary = None
 
     @staticmethod
     def applyFaces(faces, trim, uvLayer, operator):
