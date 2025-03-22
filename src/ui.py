@@ -8,10 +8,6 @@ class TrimmerUI(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Trimmer"
 
-    @classmethod
-    def get_instance(self):
-        return self
-
     def draw(self, context):
         layout = self.layout
 
@@ -85,9 +81,11 @@ class ApplyTrimSettings(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Trimmer"
 
-    @classmethod
-    def get_instance(self):
-        return self
+    def drawFillSettings(self, context):
+        pass
+
+    def drawFitSettings(self, context):
+        pass
 
     def draw(self, context):
         layout = self.layout
