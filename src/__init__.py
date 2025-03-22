@@ -12,8 +12,8 @@ import bpy
 from . import ui
 from . import trimmer
 
-classes1 = [ui.AbstractOperator, ui.TrimOptions, trimmer.UVCoord, trimmer.Trim]
-classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings, trimmer.Trimmer]
+classes1 = [trimmer.UVCoord, trimmer.Trim, ui.AbstractOperator, ui.TrimOptions]
+classes2 = [trimmer.Trimmer, ui.TrimmerUI, ui.ApplyTrimSettings]
 
 def register():
     for c in classes1:
@@ -31,7 +31,7 @@ def unregister():
 
     del bpy.types.Scene.trim_options
     del bpy.types.Scene.trim_collection
-    
+
     for c in classes1[::-1]:
         bpy.utils.unregister_class(c)
 
