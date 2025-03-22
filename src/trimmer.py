@@ -6,6 +6,9 @@ from .utils import *
 from .multiple_face_unwrap import unwrap
 from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints
 
+class TrimmerException(Exception):
+    pass
+
 class Trimmer():
     currentApplyOption = None
     currentFaces = None
@@ -20,6 +23,25 @@ class Trimmer():
         cls.flatMeshCoords = None
         cls.currentBoundary = None
         cls.currentUVLayer = None
+
+    @staticmethod
+    def getBmesh(context):
+        obj = context.object
+        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
+            raise TrimmerException("You must be in Edit Mode with a mesh object selected!")
+
+        return bmesh.from_edit_mesh(obj.data)
+
+    @staticmethod
+    def getUvLayer(bm):
+        if not bm.loops.layers.uv.items():
+            raise TrimmerException("The object does not have any UV maps!")
+        
+        uvLayer = bm.loops.layers.uv.active
+        if uvLayer is None:
+            raise TrimmerException("The object does not have an active UV map!")
+
+        return uvLayer
 
     @staticmethod
     def apply(faces, uvCoords, uvLayer):
@@ -72,22 +94,12 @@ class Trimmer():
     def apply_texture(cls, context, operator):
         print("\n--------------------------------------------")
         print("apply texture")
-        # Run checks
-        obj = context.object
-        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
-            operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
-            return
 
-        if not obj.data.uv_layers:
-            operator.report({'ERROR'}, "The object does not have any UV maps!")
-            return
-
-        bm = bmesh.from_edit_mesh(obj.data)
-        
-        uvLayer = bm.loops.layers.uv.active
-        if uvLayer is None:
-            operator.report({'ERROR'}, "The object does not have an active UV map!")
-            return
+        try:
+            bm = cls.getBmesh(context)
+            uvLayer = cls.getUvLayer()
+        except TrimmerException as error:
+            operator.report({'ERROR'}, error)
 
         selectedFaces = [face for face in bm.faces if face.select]
         if selectedFaces is None or selectedFaces == []:
