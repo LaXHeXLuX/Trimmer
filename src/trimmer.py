@@ -49,7 +49,12 @@ class Trimmer():
             operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
             return
 
+        if not obj.data.uv_layers:
+            operator.report({'ERROR'}, "The object does not have any UV maps!")
+            return
+
         bm = bmesh.from_edit_mesh(obj.data)
+        
         uvLayer = bm.loops.layers.uv.active
         if uvLayer is None:
             operator.report({'ERROR'}, "The object does not have an active UV map!")
