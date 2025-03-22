@@ -12,7 +12,7 @@ import bpy
 from . import ui
 from . import trimmer
 
-classes = [ui.AbstractOperator, ui.TrimOptions, ui.TrimmerUI, ui.ApplyTrimSettings, trimmer.UVCoord, trimmer.Trim]
+classes = [ui.AbstractOperator, ui.TrimOptions, ui.TrimmerUI, ui.ApplyTrimSettings, trimmer.UVCoord, trimmer.Trim, trimmer.Trimmer]
 
 def register():
     for c in classes:
