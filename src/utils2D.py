@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 if __name__ == '__main__':
     from utils import *
@@ -258,6 +259,17 @@ def containedPolygons(innerPolygons, outerPolygon, boundByX = True, boundByY = T
 def containedPolygon(innerPolygon, outerPolygon, boundByX = True, boundByY = True):
     return containedPolygons([innerPolygon], outerPolygon, boundByX, boundByY)[0]
 
+# Mirror points
+
+def mirrorPoints(points):
+    mirroredPoints = copy.deepcopy(points)
+    for i in range(len(mirroredPoints)):
+        for j in range(len(mirroredPoints[i])):
+            point = list(mirroredPoints[i][j])
+            point[0] *= -1
+            mirroredPoints[i][j] = type(mirroredPoints[i][j])(point)
+    return mirroredPoints
+
 # Testing
 def runBoundaryVerticesTest():
     def testBoundaryVertices(inputPolygons, output):
@@ -378,6 +390,11 @@ def runTests():
     runMVCTest()
 
     runPolygonContainmentTest()
+
+    test(mirrorPoints, [[[[0]]]], [[[0]]])
+    test(mirrorPoints, [[[[1, 2]]]], [[[-1, 2]]])
+    test(mirrorPoints, [[[[0, 0], [0, 1], [1, 1], [1, 0]]]], [[[0, 0], [0, 1], [-1, 1], [-1, 0]]])
+    test(mirrorPoints, [[[(-1, -1), (0, 1), (0, -1)], [(0, 1), (1, 1), (0, -1)]]], [[(1, -1), (0, 1), (0, -1)], [(0, 1), (-1, 1), (0, -1)]])
 
 if __name__ == "__main__":
     runTests()
