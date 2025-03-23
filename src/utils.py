@@ -52,7 +52,7 @@ def crossProduct(v1, v2):
 
 # Standard utilities
 
-coefficient = 6
+coefficient = 10
 
 def compare(a1, a2, checkType = False):
     try:
@@ -104,12 +104,10 @@ def deepToList(arr):
 
 def roundList(arr):
     newArr = []
-    for a in arr:
-        try:
-            newArr.append(round(a, coefficient))
-        except:
-            newArr.append(roundList(a))
-    return newArr
+    try:
+        return [roundList(a) for a in arr]
+    except TypeError:
+        return round(arr, coefficient)
 
 def isCollinear(p1, p2, p3):
     v1 = subtract(p2, p1)
@@ -220,8 +218,9 @@ def runTests():
     test(compare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
 
     # roundList
+    test(roundList, [1], 1)
     test(roundList, [[1]], [1])
-    test(roundList, [[0, 0.999999999, 2.000000001]], [0, 1, 2])
+    test(roundList, [[0, 0.99999999999, 2.00000000001]], [0, 1, 2])
 
     polygon = [(0, 0), (1, 2), (2, 4), (2, 3), (2, 1), (2, 0), (1, 0)]
 
