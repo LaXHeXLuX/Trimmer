@@ -158,11 +158,11 @@ def applyMvcWeight(polygon, weights):
     newX = 0
     newY = 0
     
-    for j in range(len(polygon)):
-        x, y = polygon[j]
+    for i in range(len(polygon)):
+        x, y = polygon[i]
         
-        newX += weights[j] * x
-        newY += weights[j] * y
+        newX += weights[i] * x
+        newY += weights[i] * y
 
     return [newX, newY]
 
