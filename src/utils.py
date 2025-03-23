@@ -210,6 +210,7 @@ def runTests():
     runListOperationTest()
 
     # compare
+    test(compare, ["a", "b"], -1)
     test(compare, (1, 1), 0)
     test(compare, [-10e100, 10e100], -1)
     test(compare, (2, 0), 1)
