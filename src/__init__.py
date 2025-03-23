@@ -13,7 +13,7 @@ from . import ui
 from . import trimmer
 
 classes1 = [trimmer.UVCoord, trimmer.Trim, ui.AbstractOperator, ui.TrimOptions]
-classes2 = [trimmer.Trimmer, ui.TrimmerUI, ui.ApplyTrimSettings]
+classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings]
 
 def register():
     for c in classes1:
