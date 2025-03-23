@@ -66,7 +66,7 @@ class Trimmer():
         print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
         print(f"uvCoords: {uvCoords}\n")
 
-        apply(faces, uvCoords, uvLayer)
+        cls.apply(faces, uvCoords, uvLayer)
 
         cls.currentApplyOption = fitOption
         cls.currentFaces = faces
