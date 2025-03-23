@@ -61,6 +61,9 @@ def compare(a1, a2, checkType = False):
 
         if len(a1) != len(a2):
             return -1
+
+        if type(a1) == str or type(a2) == str:
+            raise TypeError("Going ahead with strings would introduce infinite recursion!")
         
         for i in range(len(a1)):
             elementCompare = compare(a1[i], a2[i])
@@ -69,7 +72,7 @@ def compare(a1, a2, checkType = False):
             if elementCompare < 0:
                 return -1
         return 0
-    except:
+    except TypeError:
         x1, x2 = a1, a2
         try:
             EPSILON = 10 ** -coefficient
@@ -85,7 +88,7 @@ def compare(a1, a2, checkType = False):
             if x1 == x2:
                 return 0
             else:
-                return 1
+                return -1
 
 def deepToList(arr):
     try:
