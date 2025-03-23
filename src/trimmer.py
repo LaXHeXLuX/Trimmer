@@ -25,12 +25,12 @@ class Trimmer():
         cls.currentUVLayer = None
 
     @staticmethod
-    def getBmesh(context):
+    def getObject(context):
         obj = context.object
         if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
             raise TrimmerException("You must be in Edit Mode with a mesh object selected!")
 
-        return bmesh.from_edit_mesh(obj.data)
+        return obj
 
     @staticmethod
     def getUvLayer(bm):
@@ -80,7 +80,8 @@ class Trimmer():
         print("apply texture")
 
         try:
-            bm = cls.getBmesh(context)
+            obj = cls.getObject(context)
+            bm = bmesh.from_edit_mesh(obj.data)
             uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
             operator.report({'ERROR'}, error)
@@ -162,15 +163,15 @@ class Trim(bpy.types.PropertyGroup):
         return arr
 
     @staticmethod 
-    def uvCoords(uvCoords, meshCoords, fitOption):
+    def uvCoords(uvCoords, flatMeshCoords, fitOption):
         if fitOption == 'FIT':
-            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords)
+            return Trim.uvCoordsForFit(uvCoords, flatMeshCoords)
         elif fitOption == 'FIT_X':
-            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByY=False)
+            return Trim.uvCoordsForFit(uvCoords, flatMeshCoords, boundByY=False)
         elif fitOption == 'FIT_Y':
-            return Trim.uvCoordsForFit(trim.getUvCoords(), flatMeshCoords, boundByX=False)
+            return Trim.uvCoordsForFit(uvCoords, flatMeshCoords, boundByX=False)
         elif fitOption == 'FILL':
-            return Trim.uvCoordsForFill(trim.getUvCoords(), flatMeshCoords)
+            return Trim.uvCoordsForFill(uvCoords, flatMeshCoords)
         else:
             raise Exception(f"Invalid fit option: {fitOption}")
 
