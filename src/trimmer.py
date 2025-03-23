@@ -11,18 +11,22 @@ class TrimmerException(Exception):
 
 class Trimmer():
     currentApplyOption = None
-    currentFaces = None
+    currentFaceIndexes = None
     flatMeshCoords = None
     currentBoundary = None
-    currentUVLayer = None
+    currentTrim = None
 
     @classmethod
     def clear(cls, context):
         cls.currentApplyOption = None
-        cls.currentFaces = None
+        cls.currentFaceIndexes = None
         cls.flatMeshCoords = None
         cls.currentBoundary = None
-        cls.currentUVLayer = None
+        cls.currentTrim = None
+
+    @classmethod
+    def getFacesFromIndexes(cls, bm):
+        return [bm.faces[faceIndex] for faceIndex in cls.currentFaceIndexes]
 
     @staticmethod
     def getObject(context):
@@ -31,6 +35,10 @@ class Trimmer():
             raise TrimmerException("You must be in Edit Mode with a mesh object selected!")
 
         return obj
+
+    @staticmethod
+    def getNewBm(obj):
+        return bmesh.from_edit_mesh(obj.data)
 
     @staticmethod
     def getUvLayer(bm):
@@ -69,10 +77,10 @@ class Trimmer():
         cls.apply(faces, uvCoords, uvLayer)
 
         cls.currentApplyOption = fitOption
-        cls.currentFaces = faces
+        cls.currentFaceIndexes = [f.index for f in faces]
         cls.flatMeshCoords = flatMeshCoords
         cls.currentBoundary = boundaryVertices(uvCoords)
-        cls.currentUVLayer = uvLayer
+        cls.currentTrim = trim
 
     @classmethod
     def apply_texture(cls, context, operator):
@@ -81,7 +89,7 @@ class Trimmer():
 
         try:
             obj = cls.getObject(context)
-            bm = bmesh.from_edit_mesh(obj.data)
+            bm = cls.getNewBm(obj)
             uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
             operator.report({'ERROR'}, error)
@@ -103,17 +111,13 @@ class Trimmer():
 
     @classmethod
     def add_trim(cls, context, operator):
-        # Run checks
-        obj = context.object
-        if obj is None or obj.type != 'MESH' or obj.mode != 'EDIT':
-            operator.report({'ERROR'}, "You must be in Edit Mode with a mesh object selected!")
-            return False
-
-        bm = bmesh.from_edit_mesh(obj.data)
-        uvLayer = bm.loops.layers.uv.active
-        if uvLayer is None:
-            operator.report({'ERROR'}, "The object does not have an active UV map!")
-            return False
+        try:
+            obj = cls.getObject(context)
+            bm = cls.getNewBm(obj)
+            uvLayer = cls.getUvLayer(bm)
+        except TrimmerException as error:
+            operator.report({'ERROR'}, error)
+            return
 
         selectedFaces = [face for face in bm.faces if face.select]
         if selectedFaces is None or selectedFaces == []:
