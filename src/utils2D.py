@@ -273,7 +273,7 @@ def mirrorPoints(points):
 def runBoundaryVerticesTest():
     def testBoundaryVertices(inputPolygons, output):
         result = boundaryVertices(inputPolygons)
-        if not arraysAreSimilar(result, output):
+        if compare(result, output) != 0:
             raise Exception(f"Boundary vertice test failed: \nboundaryVertices({inputPolygons}) = {result} \nis not similar to \n{output}")
 
     def testTips(inputPolygons, output):

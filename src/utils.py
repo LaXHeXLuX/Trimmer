@@ -54,24 +54,7 @@ def crossProduct(v1, v2):
 
 coefficient = 6
 
-def compare(x1, x2):
-    try:
-        EPSILON = 10 ** -coefficient
-        difference = x1-x2
-        if abs(difference) < EPSILON:
-            return 0
-        if difference < -EPSILON:
-            return -1
-        if difference > EPSILON:
-            return 1
-        raise ArithmeticError(f"Values {x1}, {x2} don't respond to our laws of math!")
-    except:
-        if x1 == x2:
-            return 0
-        else:
-            return 1
-
-def deepCompare(a1, a2, checkType = False):
+def compare(a1, a2, checkType = False):
     try:
         if checkType and type(a1) != type(a2):
             return -1
@@ -80,14 +63,29 @@ def deepCompare(a1, a2, checkType = False):
             return -1
         
         for i in range(len(a1)):
-            elementCompare = deepCompare(a1[i], a2[i])
+            elementCompare = compare(a1[i], a2[i])
             if elementCompare > 0:
                 return 1
             if elementCompare < 0:
                 return -1
         return 0
     except:
-        return compare(a1, a2)
+        x1, x2 = a1, a2
+        try:
+            EPSILON = 10 ** -coefficient
+            difference = x1-x2
+            if abs(difference) < EPSILON:
+                return 0
+            if difference < -EPSILON:
+                return -1
+            if difference > EPSILON:
+                return 1
+            raise ArithmeticError(f"Values {x1}, {x2} don't respond to our laws of math!")
+        except:
+            if x1 == x2:
+                return 0
+            else:
+                return 1
 
 def deepToList(arr):
     try:
@@ -116,9 +114,9 @@ def isCollinear(p1, p2, p3):
 
     for i in range(len(v1)):
         if v1[i] != 0 or v2[i] != 0:
-            return deepCompare(multiply(v1, v2[i]), multiply(v2, v1[i])) == 0
+            return compare(multiply(v1, v2[i]), multiply(v2, v1[i])) == 0
 
-    return deepCompare(v1, v2) == 0
+    return compare(v1, v2) == 0
 
 def pointIsCollinear(points, index):
     p1 = points[(index - 1) % len(points)]
@@ -177,7 +175,7 @@ def arraysAreSimilar(arr1, arr2):
 
 def test(operation, inputs, output):
     result = operation(*inputs)
-    if deepCompare(result, output) != 0:
+    if compare(result, output) != 0:
         raise Exception(f"Test failed with {operation.__name__}({inputs}) = \n{result} \n!= \n{output}")
 
 def runListOperationTest():
@@ -212,13 +210,10 @@ def runTests():
     test(compare, (1, 1), 0)
     test(compare, [-10e100, 10e100], -1)
     test(compare, (2, 0), 1)
-
-    # deepCompare
-    test(deepCompare, (0, 0), 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 3]], 0)
-    test(deepCompare, [[1, 2, 3], [1, 2, 4]], -1)
-    test(deepCompare, [[[], 2, [[0], 5]], [[], 2, [[0], 5]]], 0)
-    test(deepCompare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
+    test(compare, [[1, 2, 3], [1, 2, 3]], 0)
+    test(compare, [[1, 2, 3], [1, 2, 4]], -1)
+    test(compare, [[[], 2, [[0], 5]], [[], 2, [[0], 5]]], 0)
+    test(compare, [[[], 2, [[1], 5]], [[], 2, [[0], 5]]], 1)
 
     # roundList
     test(roundList, [[1]], [1])

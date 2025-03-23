@@ -246,7 +246,7 @@ def unwrap(mesh):
         transformedFace = transformFace(rotatedFace, matrix)
 
         if mappedFaces[index] != None:
-            if deepCompare(mappedFaces[index], transformedFace) != 0:
+            if compare(mappedFaces[index], transformedFace) != 0:
                 print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
                 raise UnwrapException("Shape is not unwrappable without distorion")
         else:
@@ -262,12 +262,12 @@ def unwrap(mesh):
 
 def testMethod(operation, inputs, output):
     result = operation(*inputs)
-    if deepCompare(result, output) != 0:
+    if compare(result, output) != 0:
         raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
 
 def test(inputArr, outputArr):
     result = unwrap(inputArr)
-    if deepCompare(result, outputArr) != 0:
+    if compare(result, outputArr) != 0:
         raise Exception(f"Equals test failed: {result} != {outputArr}")
     
 def testFail(inputArr):
