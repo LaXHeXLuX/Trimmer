@@ -71,7 +71,7 @@ class Trimmer():
         cls.currentApplyOption = fitOption
         cls.currentFaces = faces
         cls.flatMeshCoords = flatMeshCoords
-        cls.currentBoundary = boundary(uvCoords)
+        cls.currentBoundary = boundaryVertices(uvCoords)
         cls.currentUVLayer = uvLayer
 
     @classmethod
