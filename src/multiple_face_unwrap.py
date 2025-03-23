@@ -27,15 +27,6 @@ def sortEdges(edges):
 
     return newEdges
 
-def deepRound(arr):
-    try:
-        newArr = copy.deepcopy(arr)
-        for i in range(len(arr)):
-            newArr[i] = deepRound(arr[i])
-        return newArr
-    except:
-        return round(arr, 8)
-
 def rotationMatrixToFlattenFace(face, indexIncreasing):
     normal1 = faceNormal(face, indexIncreasing)
     normal2 = np.array((0, 0, 1))
@@ -256,7 +247,7 @@ def unwrap(mesh):
             print(f"moved face {index}: {transformedFace}")
     print(f"mappedFaces: {mappedFaces}")
 
-    return deepRound(deepToList(mappedFaces))
+    return roundList(deepToList(mappedFaces))
 
 # Testing
 
@@ -278,10 +269,6 @@ def testFail(inputArr):
         pass
 
 def runTests():
-    testMethod(deepRound, [1], 1)
-    testMethod(deepRound, [1.0000000001], 1)
-    testMethod(deepRound, [[1.5, 2, [0.000000002]]], [1.5, 2, [0]])
-
     test(
         [[(-1, -1, 0), (-1, 1, 0), (1, 1, 0), (1, -1, 0)]], 
         [[(-1, 1), (-1, -1), (1, -1), (1, 1)]]
