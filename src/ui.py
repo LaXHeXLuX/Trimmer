@@ -94,6 +94,19 @@ class ApplyTrimSettings(bpy.types.Panel):
         layout.prop(scene.trim_options, "fitOptions")
         layout.row()
 
+        if Trimmer.currentApplyOption == 'FILL':
+            self.drawFillSettings(context)
+        elif Trimmer.currentApplyOption in ['FIT', 'FIT_X', 'FIT_Y']:
+            self.drawFitSettings(context)
+
+        actionSettingsRow = layout.row()
+        
+        mirrorButton = actionSettingsRow.operator("object.ao", text="", icon='MOD_MIRROR')
+        mirrorButton.button_action = 'MIRROR_TRIM'
+        
+        mirrorButton = actionSettingsRow.operator("object.ao", text="", icon='FILE_REFRESH')
+        mirrorButton.button_action = 'ROTATE_TRIM'
+
         fitOption = scene.trim_options.fitOptions
         if fitOption == 'FIT_X' or fitOption == 'FIT':
             layout.label(text="posY:")
@@ -101,6 +114,14 @@ class ApplyTrimSettings(bpy.types.Panel):
         if fitOption == 'FIT_Y' or fitOption == 'FIT':
             layout.label(text="posX:")
             layout.prop(scene.trim_options, "posX")
+
+        layout.row()
+        confirmButton = layout.operator("object.ao", text="Confirm trim")
+        confirmButton.button_action = 'CONFRIM_TRIM'
+
+    @classmethod
+    def confirmTrim(self):
+        Trimmer.clear()
 
 class AbstractOperator(bpy.types.Operator):
     bl_idname = "object.ao"
