@@ -270,6 +270,7 @@ def mirrorPoints(points):
     return mirroredPoints
 
 # Testing
+
 def runBoundaryVerticesTest():
     def testBoundaryVertices(inputPolygons, output):
         result = boundaryVertices(inputPolygons)

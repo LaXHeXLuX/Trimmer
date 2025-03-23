@@ -25,7 +25,7 @@ class TrimmerUI(bpy.types.Panel):
             op.index = index
             op.button_action = "APPLY_TEXTURE"
             
-            op = row.operator("object.ao", text="", icon="X")
+            op = row.operator("object.ao", text="", icon='X')
             op.index = index
             op.button_action = "DELETE_TRIM"
 
@@ -116,8 +116,8 @@ class AbstractOperator(bpy.types.Operator):
             Trimmer.add_trim(context, self)
         elif self.button_action == 'DELETE_TRIM':
             Trimmer.delete_trim(context, self)
-        elif self.button_action == 'MIRROR_COORDS':
-            Trimmer.mirror_coords(context, self)
+        elif self.button_action == 'MIRROR_TRIM':
+            Trimmer.mirror_trim(context, self)
         elif self.button_action == 'CONFIRM_TRIM':
             ApplyTrimSettings.confirmTrim()
         else:

@@ -201,6 +201,6 @@ class Trim(bpy.types.PropertyGroup):
         mesh = []
 
         for face in faces:
-            mesh.append([loop.vert.co for loop in face.loops])
+            mesh.append([loop.vert.co.copy() for loop in face.loops])
 
         return mesh
