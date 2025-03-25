@@ -127,6 +127,8 @@ class Trimmer():
         face = selectedFaces[0]
 
         uvCoords = [loop[uvLayer].uv.copy() for loop in face.loops]
+        uvCoords = compactPoints(uvCoords)
+        print(f"compacted uvCoords: {uvCoords}")
         trim = context.scene.trim_collection.add()
         trim.init(uvCoords, len(context.scene.trim_collection))
 
