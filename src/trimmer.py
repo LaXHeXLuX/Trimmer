@@ -186,8 +186,15 @@ class Trim(bpy.types.PropertyGroup):
         print(meshCoords)
 
         boundary = boundaryVertices(meshCoords)
+
+        boundaryNormal = normal(*boundary[0:3])
+        uvCoordsNormal = normal(*uvCoords[0:3])
+        if compare(boundaryNormal, uvCoordsNormal) != 0:
+            boundary.reverse()
+
         weights = mvcWeights(boundary, meshCoords)
         weighted = applyMvcWeights(uvCoords, weights)
+        print(f"new coordinates: {weighted}")
 
         return weighted
 
