@@ -91,8 +91,8 @@ def normalise(arr):
 def mvcPointOnVertex(n, index):
     arr = []
     for i in range(n):
-        arr.append(float(0))
-    arr[index] = float(1)
+        arr.append(0)
+    arr[index] = 1
     return arr
 
 def mvcPointOnEdgeWeight(n, distance1, distance2, index1):
@@ -107,20 +107,22 @@ def mvcPointOnEdgeWeight(n, distance1, distance2, index1):
     return arr
 
 def mvcPointWeight(polygon, point):
+    p = np.array(point)
+
     distances = []
     tanThetas = []
 
     for i in range(len(polygon)):
-        vertex = polygon[i]
-        v1 = subtract(vertex, point)
-        v1Dist = distance(v1)
+        vertex = np.array(polygon[i])
+        v1 = vertex - p
+        v1Dist = np.linalg.norm(v1)
 
         if compare(v1Dist, 0) == 0:
             return mvcPointOnVertex(len(polygon), i)
 
         nextVertex = polygon[(i+1) % len(polygon)]
-        v2 = subtract(nextVertex, point)
-        v2Dist = distance(v2)
+        v2 = nextVertex - p
+        v2Dist = np.linalg.norm(v2)
 
         if compare(v2Dist, 0) == 0:
             return mvcPointOnVertex(len(polygon), (i+1) % len(polygon))
@@ -161,10 +163,10 @@ def applyMvcWeight(polygon, weights):
     for i in range(len(polygon)):
         x, y = polygon[i]
         
-        newX += weights[i] * x
-        newY += weights[i] * y
+        newX += weights[i] * np.array(x)
+        newY += weights[i] * np.array(y)
 
-    return [newX, newY]
+    return [float(newX), float(newY)]
 
 def applyMvcWeights(polygon, weights):
     if not hasattr(weights[0], '__iter__'):
