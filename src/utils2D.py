@@ -337,7 +337,7 @@ def runMVCTest():
     def testMVC(oldPolygon, inputPoints, newPolygon, outputPoints):
         weights = mvcWeights(oldPolygon, inputPoints)
         result = applyMvcWeights(newPolygon, weights)
-        if deepCompare(result, outputPoints) != 0:
+        if compare(result, outputPoints) != 0:
             raise Exception(f"Equals test failed: {result} != {outputPoints}")
 
     testMVC(
