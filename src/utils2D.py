@@ -129,7 +129,7 @@ def mvcPointWeight(polygon, point):
         if compare(cos, -1) == 0:
             return mvcPointOnEdgeWeight(len(polygon), v1Dist, v2Dist, i)
 
-        theta = np.arccos(round(np.dot(v1, v2) / (v1Dist * v2Dist), 6))
+        theta = np.arccos(np.dot(v1, v2) / (v1Dist * v2Dist))
 
         distances.append(v1Dist)
         tanThetas.append(np.tan(theta / 2))
@@ -139,7 +139,7 @@ def mvcPointWeight(polygon, point):
         prevTan = tanThetas[(i-1) % len(tanThetas)]
         tan = tanThetas[i]
         w = (prevTan + tan) / distances[i]
-        weight.append(round(w, 6))
+        weight.append(w)
 
     return normalise(weight)
 
