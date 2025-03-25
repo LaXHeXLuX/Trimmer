@@ -91,7 +91,7 @@ def boundaryVertices(polygons, edges = None):
     firstFaceNormal = normal(firstFace[0], firstFace[1], firstFace[2])
     boundaryNormal = normal(boundary[0], boundary[1], boundary[2])
     if boundaryNormal != firstFaceNormal:
-        boundary.reverse()
+        boundary = [boundary[0]] + boundary[1:][::-1]
     return boundary
 
 def borderingEdges(point, edges):
