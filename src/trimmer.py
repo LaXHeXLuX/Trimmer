@@ -136,6 +136,31 @@ class Trimmer():
     def delete_trim(cls, context, operator):
         context.scene.trim_collection.remove(operator.index)
 
+    @classmethod
+    def mirror_trim(cls, context, operator):
+        print(f"\nmirror_trim({cls}, {context}, {operator})")
+        try:
+            obj = cls.getObject(context)
+            bm = cls.getNewBm(obj)
+            uvLayer = cls.getUvLayer(bm)
+        except TrimmerException as error:
+            operator.report({'ERROR'}, error)
+            return
+        
+        faces = cls.getFacesFromIndexes(bm)
+        print(f"faces: {faces}")
+        print(f"oldCoords: {cls.flatMeshCoords}")
+        mirroredPoints = mirrorPoints(cls.flatMeshCoords)
+        print(f"newCoords: {mirroredPoints}")
+        mirroredUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), mirroredPoints, cls.currentApplyOption)
+        print(f"oldUV: {[[loop[uvLayer].uv for loop in face.loops] for face in faces]}")
+        print(f"newUV: {mirroredUV}")
+        cls.flatMeshCoords = mirroredPoints
+        cls.currentBoundary = boundaryVertices(mirroredUV)
+        cls.apply(faces, mirroredUV, uvLayer)
+
+        bmesh.update_edit_mesh(obj.data)
+
 class UVCoord(bpy.types.PropertyGroup):
     uv: bpy.props.FloatVectorProperty(size=2)
 
