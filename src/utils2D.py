@@ -21,33 +21,71 @@ def polygonsToEdges(polygons):
 
     return edges
 
-def boundaryVertices(polygons, edges = None):
-    if edges == None:
-        edges = polygonsToEdges(polygons)
-    
-    boundaryEdges = [edge for edge in edges if edges[edge] == 1]
+def boundaryEdgeMap(boundaryEdges):
     edgeMap = {}
     for a, b in boundaryEdges:
-        edgeMap.setdefault(a, []).append(b)
-        edgeMap.setdefault(b, []).append(a)
+        if a not in edgeMap:
+            edgeMap[a] = []
+        if b not in edgeMap:
+            edgeMap[b] = []
+        
+        edgeMap[a].append(b)
+        edgeMap[b].append(a)
 
     # verify edge map
     for key in edgeMap:
         if len(edgeMap[key]) != 2:
-            raise Exception(f"Vertex {key} has {len(edgeMap[key])} unique sides, must be 2!")
+            raise Exception(f"Vertex {key} has {len(edgeMap[key])} unique sides ({edgeMap[key]}), must be 2!")
 
-    # Order the boundary edges into a continuous loop
-    first = next(iter(edgeMap))
-    boundary = []
-    current = first
-    nextVertex = -1
+    return edgeMap
 
-    while nextVertex != first:
-        nextVertex = edgeMap[current][0]
-        edgeMap[nextVertex].remove(current)
-        boundary.append(current)
-        current = nextVertex
+def nextBoundaryPoint(prev, current, edgeMap):
+    neighbours = edgeMap[tuple(current)]
+    for point in neighbours:
+        if compare(point, prev) != 0:
+            return point
+    raise Exception(f"No next point for {current}")
+
+def firstBoundaryPoint(polygons, edgeMap):
+    for i in range(len(polygons)):
+        for j in range(len(polygons[i])):
+            if tuple(polygons[i][j]) in edgeMap:
+                return [i, j]
+
+def nextPolygonPoint(polygons, polygonIndex, polygonPointIndex, positiveStep = True):
+    step = 1 if positiveStep else -1
     
+    polygon = polygons[polygonIndex]
+    return polygon[(polygonPointIndex + step) % len(polygon)]
+    
+def boundaryVertices(polygons, edges = None):
+    print(f"boundaryVertices({polygons})")
+    if edges == None:
+        edges = polygonsToEdges(polygons)
+    
+    print(f"edges: {edges}")
+    boundaryEdges = [edge for edge in edges if edges[edge] == 1]
+    print(f"boundaryEdges: {boundaryEdges}")
+    edgeMap = boundaryEdgeMap(boundaryEdges)
+    print(f"edgeMap: {edgeMap}")
+
+    firstPolygonIndex, firstPolygonPointIndex = firstBoundaryPoint(polygons, edgeMap)
+    first = polygons[firstPolygonIndex][firstPolygonPointIndex]
+    print(f"first: {first}")
+    boundary = [first]
+    prev = first
+    
+    second = nextPolygonPoint(polygons, firstPolygonIndex, firstPolygonPointIndex)
+    if tuple(second) in edgeMap[tuple(first)]:
+        current = second
+    else:
+        beforeFirst = nextPolygonPoint(polygons, firstPolygonIndex, firstPolygonPointIndex, positiveStep=False)
+        current = nextBoundaryPoint(beforeFirst, first, edgeMap)
+
+    while compare(current, first) != 0:
+        boundary.append(current)
+        prev, current = current, nextBoundaryPoint(prev, current, edgeMap)
+
     boundary = compactPoints(boundary)
     firstFace = compactPoints(polygons[0])
     firstFaceNormal = normal(firstFace[0], firstFace[1], firstFace[2])
