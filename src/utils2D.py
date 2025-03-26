@@ -264,7 +264,7 @@ def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = T
     innerWidthRatio = innerDistanceX / innerDistanceY
     outerWidthRatio = outerDistanceX / outerDistanceY
 
-    if not boundByX or innerWidthRatio < outerWidthRatio:
+    if not boundByX or (boundByY and innerWidthRatio < outerWidthRatio):
         scale = outerDistanceY / innerDistanceY
     else:
         scale = outerDistanceX / innerDistanceX
@@ -417,6 +417,11 @@ def runPolygonContainmentTest():
         containedPolygons, 
         [[[(2, 1), (-1, 1), (-1, 0), (-1, -1), (1, -1)], [(3.78885438, 0.10557281), (2, 1), (1, -1), (2.78885438, -1.89442719)]], [(0, 0), (0, 1), (1, 1), (1, 0)]],
         [[(0.6264546303, 0.604409105), (0, 0.604409105), (0, 0.395590895), (0, 0.1867726849), (0.4176364202, 0.1867726849)], [(1, 0.4176364202), (0.6264546303, 0.604409105), (0.4176364202, 0.1867726849), (0.7911817899, 0)]]
+    )
+    test(
+        containedPolygons, 
+        [[[[0, 0], [1, 0], [1, 1], [0, 1]]], [[0, 0], [5, 0], [5, 1], [0, 1]], True, False],
+        [[[0, 0], [5, 0], [5, 5], [0, 5]]]
     )
 
 def runTests():
