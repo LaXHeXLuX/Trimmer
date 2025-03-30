@@ -3,7 +3,7 @@ import bmesh
 import math
 from mathutils import Vector
 from .utils import *
-from .multiple_face_unwrap import unwrap
+from .multiple_face_unwrap import unwrap, UnwrapException
 from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints
 
 class TrimmerException(Exception):
@@ -92,7 +92,7 @@ class Trimmer():
             bm = cls.getNewBm(obj)
             uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
-            operator.report({'ERROR'}, error)
+            operator.report({'ERROR'}, str(error))
             return
 
         selectedFaces = [face for face in bm.faces if face.select]
@@ -105,8 +105,12 @@ class Trimmer():
             operator.report({'ERROR'}, "Trim is null!")
             return
 
-        Trimmer.applyFaces(context, selectedFaces, trim, uvLayer)
-        
+        try:
+            cls.applyFaces(context, selectedFaces, trim, uvLayer)
+        except UnwrapException as ue:
+            operator.report({'ERROR'}, str(ue))
+            return
+
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
@@ -116,7 +120,7 @@ class Trimmer():
             bm = cls.getNewBm(obj)
             uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
-            operator.report({'ERROR'}, error)
+            operator.report({'ERROR'}, str(error))
             return
 
         selectedFaces = [face for face in bm.faces if face.select]
@@ -144,7 +148,7 @@ class Trimmer():
             bm = cls.getNewBm(obj)
             uvLayer = cls.getUvLayer(bm)
         except TrimmerException as error:
-            operator.report({'ERROR'}, error)
+            operator.report({'ERROR'}, str(error))
             return
         
         faces = cls.getFacesFromIndexes(bm)
