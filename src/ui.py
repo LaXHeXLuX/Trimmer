@@ -21,16 +21,10 @@ class TrimmerUI(bpy.types.Panel):
             row = layout.row()
             row.prop(trim, "name", text="")
             
-            op = row.operator("object.ao", text="Apply")
-            op.index = index
-            op.button_action = "APPLY_TEXTURE"
-            
-            op = row.operator("object.ao", text="", icon='X')
-            op.index = index
-            op.button_action = "DELETE_TRIM"
+            AbstractOperator.init(row, 'APPLY_TEXTURE', index=index)
+            AbstractOperator.init(row, 'DELETE_TRIM', index=index)
 
-        op = layout.operator("object.ao", text="Add trim")
-        op.button_action = "ADD_TRIM"
+        AbstractOperator.init(layout, 'ADD_TRIM')
 
 class TrimOptions(bpy.types.PropertyGroup):
     items = [
@@ -101,11 +95,8 @@ class ApplyTrimSettings(bpy.types.Panel):
 
         actionSettingsRow = layout.row()
         
-        mirrorButton = actionSettingsRow.operator("object.ao", text="", icon='MOD_MIRROR')
-        mirrorButton.button_action = 'MIRROR_TRIM'
-        
-        mirrorButton = actionSettingsRow.operator("object.ao", text="", icon='FILE_REFRESH')
-        mirrorButton.button_action = 'ROTATE_TRIM'
+        AbstractOperator.init(actionSettingsRow, 'MIRROR_TRIM')
+        AbstractOperator.init(actionSettingsRow, 'ROTATE_TRIM')
 
         fitOption = scene.trim_options.fitOptions
         if fitOption == 'FIT_X' or fitOption == 'FIT':
@@ -116,8 +107,7 @@ class ApplyTrimSettings(bpy.types.Panel):
             layout.prop(scene.trim_options, "posX")
 
         layout.row()
-        confirmButton = layout.operator("object.ao", text="Confirm trim")
-        confirmButton.button_action = 'CONFRIM_TRIM'
+        AbstractOperator.init(layout, 'CONFIRM_TRIM')
 
     @classmethod
     def confirmTrim(self):
@@ -125,10 +115,51 @@ class ApplyTrimSettings(bpy.types.Panel):
 
 class AbstractOperator(bpy.types.Operator):
     bl_idname = "object.ao"
-    bl_label = "Abstract Operator"
+    bl_label = ""
 
     button_action: bpy.props.StringProperty(default="TEST")
     index: bpy.props.IntProperty()
+
+    def init(layout, button_action, index=None):
+        texts = {
+            'APPLY_TEXTURE': "Apply",
+            'ADD_TRIM': "Add trim",
+            'DELETE_TRIM': None,
+            'MIRROR_TRIM': None,
+            'ROTATE_TRIM': None,
+            'CONFIRM_TRIM': "Confirm trim"
+        }
+        icons = {
+            'APPLY_TEXTURE': 'NONE',
+            'ADD_TRIM': 'NONE',
+            'DELETE_TRIM': 'X',
+            'MIRROR_TRIM': 'MOD_MIRROR',
+            'ROTATE_TRIM': 'FILE_REFRESH',
+            'CONFIRM_TRIM': 'NONE'
+        }
+
+        ao_button = layout.operator("object.ao", text=texts[button_action], icon=icons[button_action])
+        ao_button.button_action = button_action
+
+        if button_action in ['APPLY_TRIM', 'DELETE_TRIM']:
+            if index == None:
+                raise Exception(f"Button {button_action} needs an index!")
+            ao_button.index = index
+
+        return ao_button
+
+    @classmethod
+    def description(cls, context, properties):
+        descriptions = {
+            'APPLY_TEXTURE': "Apply the texture",
+            'ADD_TRIM': "Add a new trim",
+            'DELETE_TRIM': "Delete the trim",
+            'MIRROR_TRIM': "Mirror the trim UV",
+            'ROTATE_TRIM': "Rotate the trim UV",
+            'CONFIRM_TRIM': "Confirm trim placement"
+        }
+
+        return descriptions[properties.button_action]
 
     def execute(self, context):
         if self.button_action == 'APPLY_TEXTURE':
