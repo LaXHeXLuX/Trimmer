@@ -216,7 +216,6 @@ def unwrap(mesh):
         F = copy.deepcopy(mesh[index])
         print(f"F: {F}")
         rotatedFace = deepToList(flatFaceCoordinates(F, indexIncreasing))
-        print(f"rotatedFace before padding: {rotatedFace}")
         rotatedFace = padPoints(rotatedFace, 2)
         print(f"rotatedFace {index}: {rotatedFace}")
 
@@ -233,12 +232,10 @@ def unwrap(mesh):
                 target1, target2 = target2, target1
         
         matrix = translationRotationMatrix(origin1, origin2, target1, target2)
-        print(f"matrix:\n{matrix}")
         transformedFace = transformFace(rotatedFace, matrix)
 
         if mappedFaces[index] != None:
             if compare(mappedFaces[index], transformedFace) != 0:
-                print(f"Face {index} is not unwrappable: {transformedFace}, {mappedFaces[index]}. Neighbour {neighbourIndex}")
                 raise UnwrapException("Shape is not unwrappable without distorion")
         else:
             mappedFaces[index] = transformedFace
