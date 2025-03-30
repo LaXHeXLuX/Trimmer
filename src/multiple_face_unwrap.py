@@ -74,7 +74,6 @@ def faceNormal(face, indexIncreasing):
 
 def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
-    print(f"R:\n{R}")
     return np.dot(np.array(face), R.T)
 
 def sharedEdge(f1, f2):
@@ -142,7 +141,6 @@ def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
 
 def translationRotationMatrix(o1, o2, t1, t2):
-    print(f"translationRotationMatrix({o1}, {o2}, {t1}, {t2})")
     vectorO = np.array(subtract(o1, o2))
     vectorT = np.array(subtract(t1, t2))
     vOnorm = np.linalg.norm(vectorO)
@@ -355,7 +353,3 @@ def runTests():
 if __name__ =="__main__":
     runTests()
     print("\nTests done.\n")
-
-    mesh = [[[1, 1, -1], [1, 1, 1], [1, -1, 1], [1, -1, -1]], [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]]
-    unwrapped = unwrap(mesh)
-    print(f"\nunwrapped: \n{unwrapped}")
