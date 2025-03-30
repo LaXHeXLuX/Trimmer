@@ -139,6 +139,8 @@ class AbstractOperator(bpy.types.Operator):
             Trimmer.delete_trim(context, self)
         elif self.button_action == 'MIRROR_TRIM':
             Trimmer.mirror_trim(context, self)
+        elif self.button_action == 'ROTATE_TRIM':
+            Trimmer.rotate_trim(context, self)
         elif self.button_action == 'CONFIRM_TRIM':
             ApplyTrimSettings.confirmTrim()
         else:
