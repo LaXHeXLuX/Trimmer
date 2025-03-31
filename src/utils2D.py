@@ -70,13 +70,13 @@ def boundaryVertices(polygons, edges = None):
     print(f"edgeMap: {edgeMap}")
 
     firstPolygonIndex, firstPolygonPointIndex = firstBoundaryPoint(polygons, edgeMap)
-    first = polygons[firstPolygonIndex][firstPolygonPointIndex]
+    first = tuple(polygons[firstPolygonIndex][firstPolygonPointIndex])
     print(f"first: {first}")
     boundary = [first]
     prev = first
     
-    second = nextPolygonPoint(polygons, firstPolygonIndex, firstPolygonPointIndex)
-    if tuple(second) in edgeMap[tuple(first)]:
+    second = tuple(nextPolygonPoint(polygons, firstPolygonIndex, firstPolygonPointIndex))
+    if second in edgeMap[tuple(first)]:
         current = second
     else:
         beforeFirst = nextPolygonPoint(polygons, firstPolygonIndex, firstPolygonPointIndex, positiveStep=False)
@@ -87,6 +87,10 @@ def boundaryVertices(polygons, edges = None):
         prev, current = current, nextBoundaryPoint(prev, current, edgeMap)
 
     boundary = compactPoints(boundary)
+
+    if len(boundary) < 3:
+        raise Exception(f"Boundary {boundary} is not a polygon!")
+
     firstFace = compactPoints(polygons[0])
     firstFaceNormal = normal(firstFace[0], firstFace[1], firstFace[2])
     boundaryNormal = normal(boundary[0], boundary[1], boundary[2])
@@ -301,6 +305,9 @@ def containedPolygon(innerPolygon, outerPolygon, boundByX = True, boundByY = Tru
 # Mirror points
 
 def mirrorPoints(points):
+    if len(points) == 0:
+        return []
+
     mirroredPoints = copy.deepcopy(points)
     for i in range(len(mirroredPoints)):
         for j in range(len(mirroredPoints[i])):
@@ -308,6 +315,18 @@ def mirrorPoints(points):
             point[0] *= -1
             mirroredPoints[i][j] = type(mirroredPoints[i][j])(point)
     return mirroredPoints
+
+# Rotate points
+
+def rotatePointsFill(points, step=1):
+    if len(points) == 0:
+        return []
+    
+    boundary = boundaryVertices(points)
+    step = step % len(boundary)
+    weights = mvcWeights(boundary, points)
+    rotatedBoundary = boundary[step:] + boundary[0:step]
+    return applyMvcWeights(rotatedBoundary, weights)
 
 # Testing
 
@@ -431,10 +450,16 @@ def runTests():
 
     runPolygonContainmentTest()
 
+    test(mirrorPoints, [[]], [])
     test(mirrorPoints, [[[[0]]]], [[[0]]])
     test(mirrorPoints, [[[[1, 2]]]], [[[-1, 2]]])
     test(mirrorPoints, [[[[0, 0], [0, 1], [1, 1], [1, 0]]]], [[[0, 0], [0, 1], [-1, 1], [-1, 0]]])
     test(mirrorPoints, [[[(-1, -1), (0, 1), (0, -1)], [(0, 1), (1, 1), (0, -1)]]], [[(1, -1), (0, 1), (0, -1)], [(0, 1), (-1, 1), (0, -1)]])
+
+    test(rotatePointsFill, [[]], [])
+    test(rotatePointsFill, [[[[0, 0], [1, 0], [1, 1], [0, 1]]]], [[[1, 0], [1, 1], [0, 1], [0, 0]]])
+    test(rotatePointsFill, [[[[0, 0], [0, 2], [1, 1], [2, 0], [1, 0]]]], [[[0, 2], [2, 0], [1, 0], [0, 0], [0, 1]]])
+    test(rotatePointsFill, [[[[0, 0], [0, 2], [2, 2], [2, 0]], [[0, 2], [2, 4], [2, 2]]]], [[[0, 2], [2, 4], [1, 0], [0, 0]], [[2, 4], [2, 0], [1, 0]]])
 
 if __name__ == "__main__":
     runTests()
