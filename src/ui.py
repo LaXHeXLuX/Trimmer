@@ -17,12 +17,12 @@ class TrimmerUI(bpy.types.Panel):
             row = layout.row()
             row.label(text="Trims:")
 
-        for index, trim in enumerate(trims):
+        for i in range(len(trims)):
             row = layout.row()
-            row.prop(trim, "name", text="")
+            row.prop(trims[i], "name", text="")
             
-            AbstractOperator.init(row, 'APPLY_TEXTURE', index=index)
-            AbstractOperator.init(row, 'DELETE_TRIM', index=index)
+            AbstractOperator.init(row, 'APPLY_TEXTURE', index=i)
+            AbstractOperator.init(row, 'DELETE_TRIM', index=i)
 
         AbstractOperator.init(layout, 'ADD_TRIM')
 
