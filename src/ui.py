@@ -138,12 +138,14 @@ class AbstractOperator(bpy.types.Operator):
             'CONFIRM_TRIM': 'NONE'
         }
 
+        if button_action in ['APPLY_TEXTURE', 'DELETE_TRIM']:
+            if index == None:
+                raise Exception(f"Button {button_action} needs an index!")
+
         ao_button = layout.operator("object.ao", text=texts[button_action], icon=icons[button_action])
         ao_button.button_action = button_action
 
-        if button_action in ['APPLY_TRIM', 'DELETE_TRIM']:
-            if index == None:
-                raise Exception(f"Button {button_action} needs an index!")
+        if button_action in ['APPLY_TEXTURE', 'DELETE_TRIM']:
             ao_button.index = index
 
         return ao_button
