@@ -59,19 +59,14 @@ def nextPolygonPoint(polygons, polygonIndex, polygonPointIndex, positiveStep = T
     return polygon[(polygonPointIndex + step) % len(polygon)]
     
 def boundaryVertices(polygons, edges = None):
-    print(f"boundaryVertices({polygons})")
     if edges == None:
         edges = polygonsToEdges(polygons)
     
-    print(f"edges: {edges}")
     boundaryEdges = [edge for edge in edges if edges[edge] == 1]
-    print(f"boundaryEdges: {boundaryEdges}")
     edgeMap = boundaryEdgeMap(boundaryEdges)
-    print(f"edgeMap: {edgeMap}")
 
     firstPolygonIndex, firstPolygonPointIndex = firstBoundaryPoint(polygons, edgeMap)
     first = tuple(polygons[firstPolygonIndex][firstPolygonPointIndex])
-    print(f"first: {first}")
     boundary = [first]
     prev = first
     
