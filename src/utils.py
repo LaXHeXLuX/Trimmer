@@ -213,6 +213,47 @@ def runListOperationTest():
     test(multiply, [[1], 10], [10])
     test(multiply, [[1, 2, 3], 2], [2, 4, 6])
 
+def runApplyMatrixTest():
+    import numpy as np
+    identity = np.array([[1, 0], [0, 1]])
+    rightAngle = np.array([[0, -1], [1, 0]])
+    scale3 = np.array([[3, 0], [0, 3]])
+    translation = np.array([[1, 0, 1], [0, 1, 1], [0, 0, 1]])
+
+    origin = [0, 0]
+    test(applyMatrix, [origin, identity], origin)
+    test(applyMatrix, [origin, rightAngle], origin)
+    test(applyMatrix, [origin, scale3], origin)
+    test(applyMatrix, [origin, translation, True], [1, 1])
+
+    oneOne = [1, 1]
+    test(applyMatrix, [oneOne, identity], oneOne)
+    test(applyMatrix, [oneOne, rightAngle], [-1, 1])
+    test(applyMatrix, [oneOne, scale3], [3, 3])
+    test(applyMatrix, [oneOne, translation, True], [2, 2])
+
+    square = [[0, 0], [0, 1], [1, 1], [1, 0]]
+    test(applyMatrix, [square, identity], square)
+    test(applyMatrix, [square, rightAngle], [[0, 0], [-1, 0], [-1, 1], [0, 1]])
+    test(applyMatrix, [square, scale3], [[0, 0], [0, 3], [3, 3], [3, 0]])
+    test(applyMatrix, [square, translation, True], [[1, 1], [1, 2], [2, 2], [2, 1]])
+
+    polygon = [
+        [[0, 0], [0, 1], [1, 1]],
+        [[0, 0], [-1, 0], [0, 1]]
+    ]
+    test(applyMatrix, [polygon, identity], polygon)
+    test(applyMatrix, [polygon, rightAngle], [[[0, 0], [-1, 0], [-1, 1]], [[0, 0], [0, -1], [-1, 0]]])
+    test(applyMatrix, [polygon, scale3], [[[0, 0], [0, 3], [3, 3]], [[0, 0], [-3, 0], [0, 3]]])
+    test(applyMatrix, [polygon, translation, True], [[[1, 1], [1, 2], [2, 2]], [[1, 1], [0, 1], [1, 2]]])
+
+    combinedMatrix = np.array([
+        [0, -3, 1],
+        [3, 0, 1],
+        [0, 0, 1]
+    ])
+    test(applyMatrix, [polygon, combinedMatrix, True], [[[1, 1], [-2, 1], [-2, 4]], [[1, 1], [1, -2], [-2, 1]]])
+
 def runTests():
     # arraysAreSimilar
     test(arraysAreSimilar, [[], []], True)
@@ -263,6 +304,8 @@ def runTests():
     test(padPoints, [[()], 2], [(1, 1)])
     test(padPoints, [[[(0, 0, 0), (0, 0, 1), (0, 1, 1), (0, 1, 0)]], 2], [[(0, 0), (0, 0), (0, 1), (0, 1)]])
     test(padPoints, [[[[], (0, 0), [1, 2, 3], (0, 2, 4, 6)]], 2], [[[1, 1], (0, 0), [1, 2], (0, 2)]])
+
+    runApplyMatrixTest()
 
 if __name__ == "__main__":
     runTests()
