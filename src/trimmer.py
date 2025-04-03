@@ -138,7 +138,11 @@ class Trimmer():
 
     @classmethod
     def delete_trim(cls, context, operator):
-        context.scene.trim_collection.remove(operator.index)
+        trims = context.scene.trim_collection
+        if 0 <= operator.index < len(trims):
+            trims.remove(operator.index)
+        else:
+            raise IndexError(f"Index {operator.index} is out of range for the trim collection (length {len(trims)}).")
 
     @classmethod
     def mirror_trim(cls, context, operator):
