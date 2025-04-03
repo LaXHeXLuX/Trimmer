@@ -148,6 +148,23 @@ def padPoints(points, limit):
 
     return type(points)([padPoints(el, limit) for el in points])
 
+def applyMatrix(points, matrix, translation = False):
+    if not hasattr(points, '__iter__'):
+        raise Exception("Parameter points must be iterable!")
+
+    if translation:
+        points = padPoints(points, len(matrix[0]))
+    
+    if not any(hasattr(el, '__iter__') for el in points):
+        result = deepToList(matrix @ points)
+    else:
+        result = ([applyMatrix(el, matrix) for el in points])
+
+    if translation:
+        result = padPoints(result, len(matrix[0]) - 1)
+    
+    return type(points)(result)
+
 def normal(P1, P2, P3):
     V1 = subtract(P2, P1)
     V2 = subtract(P3, P2)
