@@ -161,13 +161,6 @@ def translationRotationMatrix(o1, o2, t1, t2):
 
     return T
 
-def transformFace(face, matrix):
-    paddedFace = padPoints(face, len(matrix[0]))
-    newFace = []
-    for vertex in paddedFace:
-        newFace.append(deepToList(matrix @ np.array(vertex)))
-    return padPoints(newFace, len(matrix[0]) - 1)
-
 def unwrap(mesh):
     mappedFaces = []
     mappedBy = []
@@ -214,7 +207,7 @@ def unwrap(mesh):
                 target1, target2 = target2, target1
         
         matrix = translationRotationMatrix(origin1, origin2, target1, target2)
-        transformedFace = transformFace(rotatedFace, matrix)
+        transformedFace = applyMatrix(rotatedFace, matrix, True)
 
         if mappedFaces[index] != None:
             if compare(mappedFaces[index], transformedFace) != 0:
