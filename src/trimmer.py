@@ -4,7 +4,7 @@ import math
 from mathutils import Vector
 from .utils import *
 from .multiple_face_unwrap import unwrap, UnwrapException
-from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints
+from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints, rotatePointsFill
 
 class TrimmerException(Exception):
     pass
@@ -170,14 +170,7 @@ class Trimmer():
 
         if cls.currentApplyOption == 'FILL':
             currentUV = [[loop[uvLayer].uv[:] for loop in face.loops] for face in faces]
-            boundary = boundaryVertices(currentUV)
-            weights = mvcWeights(boundary, currentUV)
-            rotatedBoundary = boundary[1:] + boundary[0:1]
-            rotatedUV = applyMvcWeights(rotatedBoundary, weights)
-            print(f"current boundary: {boundary}")
-            print(f"new boundary: {rotatedBoundary}")
-            print(f"old points: {currentUV}")
-            print(f"new points: {rotatedUV}")
+            rotatedUV = rotatePointsFill(currentUV)
 
             cls.apply(faces, rotatedUV, uvLayer)
         else:
