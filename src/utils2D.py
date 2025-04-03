@@ -323,6 +323,18 @@ def rotatePointsFill(points, step=1):
     rotatedBoundary = boundary[step:] + boundary[0:step]
     return applyMvcWeights(rotatedBoundary, weights)
 
+def rotatePointsFit(points, degrees):
+    radians = np.radians(degrees)
+    sinTheta = np.sin(radians)
+    cosTheta = np.cos(radians)
+
+    R = np.array([
+        [cosTheta, -sinTheta],
+        [sinTheta,  cosTheta]
+    ])
+
+    return applyMatrix(points, R)
+
 # Testing
 
 def runBoundaryVerticesTest():
