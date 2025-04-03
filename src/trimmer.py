@@ -156,16 +156,39 @@ class Trimmer():
             return
         
         faces = cls.getFacesFromIndexes(bm)
-        print(f"faces: {faces}")
-        print(f"oldCoords: {cls.flatMeshCoords}")
         mirroredPoints = mirrorPoints(cls.flatMeshCoords)
-        print(f"newCoords: {mirroredPoints}")
         mirroredUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), mirroredPoints, cls.currentApplyOption)
-        print(f"oldUV: {[[loop[uvLayer].uv for loop in face.loops] for face in faces]}")
-        print(f"newUV: {mirroredUV}")
-        cls.flatMeshCoords = mirroredPoints
-        cls.currentBoundary = boundaryVertices(mirroredUV)
         cls.apply(faces, mirroredUV, uvLayer)
+        cls.flatMeshCoords = mirroredPoints
+
+        bmesh.update_edit_mesh(obj.data)
+
+    @classmethod
+    def rotate_trim(cls, context, operator):
+        print(f"\nrotate_trim({cls}, {context}, {operator})")
+        try:
+            obj = cls.getObject(context)
+            bm = cls.getNewBm(obj)
+            uvLayer = cls.getUvLayer(bm)
+            faces = cls.getFacesFromIndexes(bm)
+        except TrimmerException as error:
+            operator.report({'ERROR'}, str(error))
+            return
+
+        if cls.currentApplyOption == 'FILL':
+            currentUV = [[loop[uvLayer].uv[:] for loop in face.loops] for face in faces]
+            boundary = boundaryVertices(currentUV)
+            weights = mvcWeights(boundary, currentUV)
+            rotatedBoundary = boundary[1:] + boundary[0:1]
+            rotatedUV = applyMvcWeights(rotatedBoundary, weights)
+            print(f"current boundary: {boundary}")
+            print(f"new boundary: {rotatedBoundary}")
+            print(f"old points: {currentUV}")
+            print(f"new points: {rotatedUV}")
+
+            cls.apply(faces, rotatedUV, uvLayer)
+        else:
+            operator.report({'ERROR'}, f"currentApplyOption ({cls.currentApplyOption}) is not FILL")
 
         bmesh.update_edit_mesh(obj.data)
 
