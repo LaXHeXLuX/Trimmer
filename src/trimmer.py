@@ -13,7 +13,6 @@ class Trimmer():
     currentApplyOption = None
     currentFaceIndexes = None
     flatMeshCoords = None
-    currentBoundary = None
     currentTrim = None
 
     @classmethod
@@ -21,7 +20,6 @@ class Trimmer():
         cls.currentApplyOption = None
         cls.currentFaceIndexes = None
         cls.flatMeshCoords = None
-        cls.currentBoundary = None
         cls.currentTrim = None
 
     @classmethod
@@ -57,7 +55,6 @@ class Trimmer():
             for j in range(len(faces[i].loops)):
                 UVLoop = faces[i].loops[j][uvLayer]
                 coord = uvCoords[i][j]
-                print(f"applying UV: {UVLoop.uv} = {coord}")
                 UVLoop.uv = coord
 
     @classmethod
@@ -79,7 +76,6 @@ class Trimmer():
         cls.currentApplyOption = fitOption
         cls.currentFaceIndexes = [f.index for f in faces]
         cls.flatMeshCoords = flatMeshCoords
-        cls.currentBoundary = boundaryVertices(uvCoords)
         cls.currentTrim = trim
 
     @classmethod
@@ -244,10 +240,12 @@ class Trim(bpy.types.PropertyGroup):
         print(meshCoords)
 
         boundary = boundaryVertices(meshCoords)
+        print(f"boundary: {boundary}")
 
         boundaryNormal = normal(*boundary[0:3])
         uvCoordsNormal = normal(*uvCoords[0:3])
         if compare(boundaryNormal, uvCoordsNormal) != 0:
+            print(f"boundary has to be mirrored: {boundary}")
             boundary.reverse()
 
         weights = mvcWeights(boundary, meshCoords)
