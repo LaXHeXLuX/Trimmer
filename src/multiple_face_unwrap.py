@@ -169,11 +169,6 @@ def transformFace(face, matrix):
     return padPoints(newFace, len(matrix[0]) - 1)
 
 def unwrap(mesh):
-    print("unwrap. mesh:")
-    for f in mesh:
-        print(f)
-    print()
-
     mappedFaces = []
     mappedBy = []
     for i in range(len(mesh)):
@@ -189,19 +184,11 @@ def unwrap(mesh):
 
     stack = []
     stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
-    
-    print("graph:")
-    for i in range(len(graph)):
-        print(graph[i])
-    print()
 
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex = stack.pop()
-        print(f"new loop. stack size: {len(stack)}")
-        print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}")
 
         if neighbourIndex in mappedBy[index]:
-            print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
@@ -209,13 +196,10 @@ def unwrap(mesh):
                 continue
             neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
             stack.append((i, neighbourIndexIncreasing, index))
-            print(f"adding {(i, neighbourIndexIncreasing, index)} to stack")
 
         F = copy.deepcopy(mesh[index])
-        print(f"F: {F}")
         rotatedFace = deepToList(flatFaceCoordinates(F, indexIncreasing))
         rotatedFace = padPoints(rotatedFace, 2)
-        print(f"rotatedFace {index}: {rotatedFace}")
 
         origin1 = rotatedFace[0]
         origin2 = rotatedFace[1]
@@ -239,8 +223,6 @@ def unwrap(mesh):
             mappedFaces[index] = transformedFace
             mappedBy[index].append(neighbourIndex)
             if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
-            print(f"moved face {index}: {transformedFace}")
-    print(f"mappedFaces: {mappedFaces}")
 
     return roundList(deepToList(mappedFaces))
 

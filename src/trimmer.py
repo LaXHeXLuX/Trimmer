@@ -128,7 +128,6 @@ class Trimmer():
 
         uvCoords = [loop[uvLayer].uv.copy() for loop in face.loops]
         uvCoords = compactPoints(uvCoords)
-        print(f"compacted uvCoords: {uvCoords}")
         trim = context.scene.trim_collection.add()
         trim.init(uvCoords, len(context.scene.trim_collection))
 
@@ -142,7 +141,6 @@ class Trimmer():
 
     @classmethod
     def mirror_trim(cls, context, operator):
-        print(f"\nmirror_trim({cls}, {context}, {operator})")
         try:
             obj = cls.getObject(context)
             bm = cls.getNewBm(obj)
@@ -161,7 +159,6 @@ class Trimmer():
 
     @classmethod
     def rotate_trim(cls, context, operator):
-        print(f"\nrotate_trim({cls}, {context}, {operator})")
         try:
             obj = cls.getObject(context)
             bm = cls.getNewBm(obj)
@@ -235,30 +232,20 @@ class Trim(bpy.types.PropertyGroup):
 
     @staticmethod
     def uvCoordsForFill(uvCoords, meshCoords):
-        print("uvCoordsForFill(uvCoords, meshCoords)")
-        print(uvCoords)
-        print(meshCoords)
-
         boundary = boundaryVertices(meshCoords)
-        print(f"boundary: {boundary}")
 
         boundaryNormal = normal(*boundary[0:3])
         uvCoordsNormal = normal(*uvCoords[0:3])
         if compare(boundaryNormal, uvCoordsNormal) != 0:
-            print(f"boundary has to be mirrored: {boundary}")
             boundary.reverse()
 
         weights = mvcWeights(boundary, meshCoords)
         weighted = applyMvcWeights(uvCoords, weights)
-        print(f"new coordinates: {weighted}")
 
         return weighted
 
     @staticmethod
     def uvCoordsForFit(uvCoords, meshCoords, boundByX = True, boundByY = True):
-        print("uvCoordsForFit(uvCoords, meshCoords)")
-        print(uvCoords)
-        print(meshCoords)
         from .utils2D import containedPolygons
 
         return containedPolygons(meshCoords, uvCoords, boundByX, boundByY)
