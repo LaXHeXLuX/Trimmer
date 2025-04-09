@@ -200,7 +200,7 @@ class Trim(bpy.types.PropertyGroup):
         
         for coord in uvCoords:
             uvCoordItem = self.uvCoords.add()
-            uvCoordItem.uv = coord.copy()
+            uvCoordItem.uv = coord[:]
 
     def getUvCoords(self):
         arr = []
@@ -248,6 +248,6 @@ class Trim(bpy.types.PropertyGroup):
         mesh = []
 
         for face in faces:
-            mesh.append([loop.vert.co.copy() for loop in face.loops])
+            mesh.append([loop.vert.co[:] for loop in face.loops])
 
         return mesh
