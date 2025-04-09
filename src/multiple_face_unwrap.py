@@ -28,7 +28,7 @@ def sortEdges(edges):
     return newEdges
 
 def rotationMatrixToFlattenFace(face, indexIncreasing):
-    normal1 = faceNormal(face, indexIncreasing)
+    normal1 = faceNormal(compactPoints(face), indexIncreasing)
     normal2 = np.array((0, 0, 1))
     return rotationMatrixFromNormals(normal1, normal2)
 
@@ -323,6 +323,10 @@ def runTests():
             [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0)],
             [(0, 0, 1), (0, 1, 1), (1, 1, 1), (1, 0, 1)]
         ]
+    )
+    test(
+        [[(-1, -1, -1), (-1, -1, 0), (-1, -1, 1), (-1, 1, 1), (-1, 1, -1)]], 
+        [[(-1, -1), (0, -1), (1, -1), (1, 1), (-1, 1)]]
     )
 
 if __name__ =="__main__":
