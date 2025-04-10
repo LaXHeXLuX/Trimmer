@@ -36,6 +36,17 @@ class TrimOptions(bpy.types.PropertyGroup):
 
     updates_off: bpy.props.BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'}) # type: ignore
 
+    def reset(self, prop):
+        default = self.__class__.bl_rna.properties[prop].default
+        self.updates_off = True
+        setattr(self, prop, default)
+        self.updates_off = False
+
+    def clear(self):
+        for prop in ['fitOptions', 'rotation', 'posX', 'posY']:
+            if prop in self.__class__.bl_rna.properties:
+                self.reset(prop)
+
     fitOptions: bpy.props.EnumProperty(
         name = "",
         description = "Select how to map the selected face(s) to the trim",
@@ -110,8 +121,9 @@ class ApplyTrimSettings(bpy.types.Panel):
         layout.row()
         AbstractOperator.init(layout, 'CONFIRM_TRIM')
 
-    @classmethod
-    def confirmTrim(self):
+    @staticmethod
+    def confirmTrim():
+        bpy.context.scene.trim_options.clear()
         Trimmer.clear()
 
 class AbstractOperator(bpy.types.Operator):
