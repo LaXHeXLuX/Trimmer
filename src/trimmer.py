@@ -1,6 +1,5 @@
 import bpy
 import bmesh
-import math
 from mathutils import Vector
 from .utils import *
 from .multiple_face_unwrap import unwrap, UnwrapException
