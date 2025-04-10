@@ -178,14 +178,14 @@ class Trimmer():
         bmesh.update_edit_mesh(obj.data)
 
 class UVCoord(bpy.types.PropertyGroup):
-    uv: bpy.props.FloatVectorProperty(size=2)
+    uv: bpy.props.FloatVectorProperty(size=2) # type: ignore
 
     def getVector(self):
         return Vector(self.uv)
 
 class Trim(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    uvCoords: bpy.props.CollectionProperty(type=UVCoord)
+    name: bpy.props.StringProperty() # type: ignore
+    uvCoords: bpy.props.CollectionProperty(type=UVCoord) # type: ignore
 
     def init(self, uvCoords, index):
         self.name = f"Trim {index}"

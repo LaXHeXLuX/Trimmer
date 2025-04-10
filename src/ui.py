@@ -34,39 +34,40 @@ class TrimOptions(bpy.types.PropertyGroup):
         ('FIT', "Fit", "Fit inside the trim"),
     ]
 
+    updates_off: bpy.props.BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'}) # type: ignore
+
     fitOptions: bpy.props.EnumProperty(
         name = "",
         description = "Select how to map the selected face(s) to the trim",
         items = items,
         default = 'FILL'
-    )
+    ) # type: ignore
+
+    def rotation_update(self, context):
+        if self.updates_off:
+            return
+        Trimmer.rotate_trim(context, degrees = self.rotation)
 
     rotation: bpy.props.FloatProperty(
         name = "Rotation",
         description = "Rotate the UV",
         default = 0.0,
-        min = 0.0,
-        max =360.0,
-        update = lambda self, context: print("rotation lambda")#update_position(self, context, 'x')
-    )
+        update = rotation_update
+    ) # type: ignore
 
     posX: bpy.props.FloatProperty(
         name = "X Position",
         description = "Move the UV along X-axis",
         default = 0.0,
-        min = -10.0,
-        max = 10.0,
-        update = lambda self, context: print("posX lambda")#update_position(self, context, 'x')
-    )
+        update = rotation_update
+    ) # type: ignore
 
     posY: bpy.props.FloatProperty(
         name = "Y Position",
         description = "Move the UV along Y-axis",
         default = 0.0,
-        min = -10.0,
-        max = 10.0,
-        update = lambda self, context: print("posY lambda")#update_position(self, context, 'y')
-    )
+        update = rotation_update
+    ) # type: ignore
 
 class ApplyTrimSettings(bpy.types.Panel):
     bl_label = "Settings"
@@ -117,8 +118,8 @@ class AbstractOperator(bpy.types.Operator):
     bl_idname = "object.ao"
     bl_label = ""
 
-    button_action: bpy.props.StringProperty(default="TEST")
-    index: bpy.props.IntProperty()
+    button_action: bpy.props.StringProperty(default="TEST") # type: ignore
+    index: bpy.props.IntProperty() # type: ignore
 
     def init(layout, button_action, index=None):
         texts = {
