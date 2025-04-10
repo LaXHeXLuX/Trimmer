@@ -166,15 +166,15 @@ class AbstractOperator(bpy.types.Operator):
 
     def execute(self, context):
         if self.button_action == 'APPLY_TEXTURE':
-            Trimmer.apply_texture(context, self)
+            Trimmer.apply_texture(context, self.index)
         elif self.button_action == 'ADD_TRIM':
-            Trimmer.add_trim(context, self)
+            Trimmer.add_trim(context)
         elif self.button_action == 'DELETE_TRIM':
-            Trimmer.delete_trim(context, self)
+            Trimmer.delete_trim(context, self.index)
         elif self.button_action == 'MIRROR_TRIM':
-            Trimmer.mirror_trim(context, self)
+            Trimmer.mirror_trim(context)
         elif self.button_action == 'ROTATE_TRIM':
-            Trimmer.rotate_trim(context, self)
+            Trimmer.rotate_trim(context)
         elif self.button_action == 'CONFIRM_TRIM':
             ApplyTrimSettings.confirmTrim()
         else:

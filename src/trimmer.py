@@ -78,50 +78,38 @@ class Trimmer():
         cls.currentTrim = trim
 
     @classmethod
-    def apply_texture(cls, context, operator):
+    def apply_texture(cls, context, index):
         print("\n--------------------------------------------")
         print("apply texture")
 
-        try:
-            obj = cls.getObject(context)
-            bm = cls.getNewBm(obj)
-            uvLayer = cls.getUvLayer(bm)
-        except TrimmerException as error:
-            operator.report({'ERROR'}, str(error))
-            return
+        obj = cls.getObject(context) # Error handling
+        bm = cls.getNewBm(obj)
+        uvLayer = cls.getUvLayer(bm)
 
         selectedFaces = [face for face in bm.faces if face.select]
-        if selectedFaces is None or selectedFaces == []:
-            operator.report({'ERROR'}, "No face selected!")
-            return
+        if selectedFaces is None or selectedFaces == []: # Error handling
+            raise TrimmerException("No face selected!")
 
-        trim = context.scene.trim_collection[operator.index]
+        trim = context.scene.trim_collection[index]
         if trim is None:
-            operator.report({'ERROR'}, "Trim is null!")
-            return
+            raise TrimmerException("Trim is null!") # Error handling
 
         try:
             cls.applyFaces(context, selectedFaces, trim, uvLayer)
         except UnwrapException as ue:
-            operator.report({'ERROR'}, str(ue))
-            return
+            raise TrimmerException(str(ue)) # Error handling
 
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
-    def add_trim(cls, context, operator):
-        try:
-            obj = cls.getObject(context)
-            bm = cls.getNewBm(obj)
-            uvLayer = cls.getUvLayer(bm)
-        except TrimmerException as error:
-            operator.report({'ERROR'}, str(error))
-            return
+    def add_trim(cls, context):
+        obj = cls.getObject(context) # Error handling
+        bm = cls.getNewBm(obj)
+        uvLayer = cls.getUvLayer(bm)
 
         selectedFaces = [face for face in bm.faces if face.select]
         if selectedFaces is None or selectedFaces == []:
-            operator.report({'ERROR'}, "No face selected!")
-            return False
+            raise TrimmerException("No face selected!") # Error handling
             
         face = selectedFaces[0]
 
@@ -131,22 +119,18 @@ class Trimmer():
         trim.init(uvCoords, len(context.scene.trim_collection))
 
     @classmethod
-    def delete_trim(cls, context, operator):
+    def delete_trim(cls, context, index):
         trims = context.scene.trim_collection
-        if 0 <= operator.index < len(trims):
-            trims.remove(operator.index)
+        if 0 <= index < len(trims):
+            trims.remove(index)
         else:
-            raise IndexError(f"Index {operator.index} is out of range for the trim collection (length {len(trims)}).")
+            raise IndexError(f"Index {index} is out of range for the trim collection (length {len(trims)}).")
 
     @classmethod
-    def mirror_trim(cls, context, operator):
-        try:
-            obj = cls.getObject(context)
-            bm = cls.getNewBm(obj)
-            uvLayer = cls.getUvLayer(bm)
-        except TrimmerException as error:
-            operator.report({'ERROR'}, str(error))
-            return
+    def mirror_trim(cls, context):
+        obj = cls.getObject(context)
+        bm = cls.getNewBm(obj)
+        uvLayer = cls.getUvLayer(bm)
         
         faces = cls.getFacesFromIndexes(bm)
         mirroredPoints = mirrorPoints(cls.flatMeshCoords)
@@ -157,15 +141,11 @@ class Trimmer():
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
-    def rotate_trim(cls, context, operator):
-        try:
-            obj = cls.getObject(context)
-            bm = cls.getNewBm(obj)
-            uvLayer = cls.getUvLayer(bm)
-            faces = cls.getFacesFromIndexes(bm)
-        except TrimmerException as error:
-            operator.report({'ERROR'}, str(error))
-            return
+    def rotate_trim(cls, context, degrees = None):
+        obj = cls.getObject(context)
+        bm = cls.getNewBm(obj)
+        uvLayer = cls.getUvLayer(bm)
+        faces = cls.getFacesFromIndexes(bm)
 
         if cls.currentApplyOption == 'FILL':
             currentUV = [[loop[uvLayer].uv[:] for loop in face.loops] for face in faces]
