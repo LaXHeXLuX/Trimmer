@@ -3,7 +3,7 @@ import bmesh
 from mathutils import Vector
 from .utils import *
 from .multiple_face_unwrap import unwrap, UnwrapException
-from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints, rotatePointsFill
+from .utils2D import boundaryVertices, mvcWeights, applyMvcWeights, mirrorPoints, rotatePointsFill, rotatePointsFit
 
 class TrimmerException(Exception):
     pass
@@ -12,6 +12,7 @@ class Trimmer():
     currentApplyOption = None
     currentFaceIndexes = None
     flatMeshCoords = None
+    currentReferenceCoords = None
     currentTrim = None
 
     @classmethod
@@ -19,11 +20,19 @@ class Trimmer():
         cls.currentApplyOption = None
         cls.currentFaceIndexes = None
         cls.flatMeshCoords = None
+        cls.currentReferenceCoords = None
         cls.currentTrim = None
 
     @classmethod
     def getFacesFromIndexes(cls, bm):
         return [bm.faces[faceIndex] for faceIndex in cls.currentFaceIndexes]
+
+    @staticmethod
+    def uvCoordsFromFaces(faces, uvLayer, single = False):
+        if single:
+            return [loop[uvLayer].uv[:] for loop in faces.loops]
+        else:
+            return [[loop[uvLayer].uv[:] for loop in face.loops] for face in faces]
 
     @staticmethod
     def getObject(context):
@@ -48,13 +57,18 @@ class Trimmer():
 
         return uvLayer
 
-    @staticmethod
-    def apply(faces, uvCoords, uvLayer):
+    @classmethod
+    def apply(cls, context, faces, uvCoords, uvLayer, temporary = False):
         for i in range(len(faces)):
             for j in range(len(faces[i].loops)):
                 UVLoop = faces[i].loops[j][uvLayer]
                 coord = uvCoords[i][j]
                 UVLoop.uv = coord
+        
+        if not temporary: 
+            cls.currentReferenceCoords = uvCoords
+            context.scene.trim_options.clear()
+            
 
     @classmethod
     def applyFaces(cls, context, faces, trim, uvLayer):
@@ -70,7 +84,7 @@ class Trimmer():
         print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
         print(f"uvCoords: {uvCoords}\n")
 
-        cls.apply(faces, uvCoords, uvLayer)
+        cls.apply(context, faces, uvCoords, uvLayer)
 
         cls.currentApplyOption = fitOption
         cls.currentFaceIndexes = [f.index for f in faces]
@@ -113,7 +127,7 @@ class Trimmer():
             
         face = selectedFaces[0]
 
-        uvCoords = [loop[uvLayer].uv.copy() for loop in face.loops]
+        uvCoords = cls.uvCoordsFromFaces(face, uvLayer, single=True)
         uvCoords = compactPoints(uvCoords)
         trim = context.scene.trim_collection.add()
         trim.init(uvCoords, len(context.scene.trim_collection))
@@ -133,10 +147,9 @@ class Trimmer():
         uvLayer = cls.getUvLayer(bm)
         
         faces = cls.getFacesFromIndexes(bm)
-        mirroredPoints = mirrorPoints(cls.flatMeshCoords)
+        mirroredPoints = mirrorPoints(cls.uvCoordsFromFaces(faces, uvLayer))
         mirroredUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), mirroredPoints, cls.currentApplyOption)
-        cls.apply(faces, mirroredUV, uvLayer)
-        cls.flatMeshCoords = mirroredPoints
+        cls.apply(context, faces, mirroredUV, uvLayer)
 
         bmesh.update_edit_mesh(obj.data)
 
@@ -148,13 +161,14 @@ class Trimmer():
         faces = cls.getFacesFromIndexes(bm)
 
         if cls.currentApplyOption == 'FILL':
-            currentUV = [[loop[uvLayer].uv[:] for loop in face.loops] for face in faces]
-            rotatedUV = rotatePointsFill(currentUV)
-
-            cls.apply(faces, rotatedUV, uvLayer)
+            rotatedUV = rotatePointsFill(cls.currentReferenceCoords)
         else:
-            operator.report({'ERROR'}, f"currentApplyOption ({cls.currentApplyOption}) is not FILL")
-
+            if degrees == None:
+                raise TrimmerException(f"Parameter degrees for fit option {cls.currentApplyOption} can not be null!")
+            rotatedUnfitUV = rotatePointsFit(cls.currentReferenceCoords, degrees)
+            rotatedUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), rotatedUnfitUV, cls.currentApplyOption)
+        
+        cls.apply(context, faces, rotatedUV, uvLayer, temporary=True)
         bmesh.update_edit_mesh(obj.data)
 
 class UVCoord(bpy.types.PropertyGroup):
