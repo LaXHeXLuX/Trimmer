@@ -126,8 +126,8 @@ class AbstractOperator(bpy.types.Operator):
             'APPLY_TEXTURE': "Apply",
             'ADD_TRIM': "Add trim",
             'DELETE_TRIM': None,
-            'MIRROR_TRIM': None,
-            'ROTATE_TRIM': None,
+            'MIRROR_TRIM': "Mirror",
+            'ROTATE_TRIM': "Rotate",
             'CONFIRM_TRIM': "Confirm trim"
         }
         icons = {
