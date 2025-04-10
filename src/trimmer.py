@@ -15,7 +15,7 @@ class Trimmer():
     currentTrim = None
 
     @classmethod
-    def clear(cls, context):
+    def clear(cls):
         cls.currentApplyOption = None
         cls.currentFaceIndexes = None
         cls.flatMeshCoords = None
