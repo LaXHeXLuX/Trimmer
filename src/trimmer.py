@@ -57,6 +57,24 @@ class Trimmer():
 
         return uvLayer
 
+    @staticmethod
+    def seamEdgeNeighbors(faces):
+        faceIndexMap = {face.index: i for i, face in enumerate(faces)}
+        seamEdges = set()
+
+        for face in faces:
+            for edge in face.edges:
+                if edge.seam:
+                    seamEdges.add(edge)
+
+        neighborFaceLists = []
+        for edge in seamEdges:
+            face_list = [faceIndexMap[f.index] for f in edge.link_faces if f.index in faceIndexMap]
+            if len(face_list) > 1:
+                neighborFaceLists.append(face_list)
+
+        return neighborFaceLists
+
     @classmethod
     def apply(cls, context, faces, uvCoords, uvLayer, temporary = False):
         for i in range(len(faces)):
@@ -73,7 +91,8 @@ class Trimmer():
     def applyFaces(cls, context, faces, trim, uvLayer):
         meshCoords = Trim.parseMeshCoordinates(faces)
 
-        flatMeshCoords = unwrap(meshCoords)
+        seams = cls.seamEdgeNeighbors(faces)
+        flatMeshCoords = unwrap(meshCoords, seams)
 
         fitOption = context.scene.trim_options.fitOptions
         uvCoords = Trim.uvCoords(trim.getUvCoords(), flatMeshCoords, fitOption)
