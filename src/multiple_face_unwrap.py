@@ -223,8 +223,6 @@ def unwrap(mesh, seams = None):
             mappedBy[index].append((neighbourIndex, neighbourEdgeIndex))
             if neighbourIndex != None: mappedBy[neighbourIndex].append((index, edgeIndex))
 
-    print(f"mappedFaces: {mappedFaces}")
-
     return roundList(deepToList(mappedFaces))
 
 # Testing
