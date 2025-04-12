@@ -90,28 +90,28 @@ class Trimmer():
         print("\n--------------------------------------------")
         print("apply texture")
 
-        obj = cls.getObject(context) # Error handling
+        obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
 
         selectedFaces = [face for face in bm.faces if face.select]
-        if selectedFaces is None or selectedFaces == []: # Error handling
+        if selectedFaces is None or selectedFaces == []:
             raise TrimmerException("No face selected!")
 
         trim = context.scene.trim_collection[index]
         if trim is None:
-            raise TrimmerException("Trim is null!") # Error handling
+            raise TrimmerException("Trim is null!")
 
         try:
             cls.applyFaces(context, selectedFaces, trim, uvLayer)
         except UnwrapException as ue:
-            raise TrimmerException(str(ue)) # Error handling
+            raise TrimmerException(str(ue))
 
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
     def add_trim(cls, context):
-        obj = cls.getObject(context) # Error handling
+        obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
 
