@@ -69,20 +69,14 @@ class Trimmer():
             cls.currentReferenceCoords = uvCoords
             context.scene.trim_options.clear()
             
-
     @classmethod
     def applyFaces(cls, context, faces, trim, uvLayer):
         meshCoords = Trim.parseMeshCoordinates(faces)
 
         flatMeshCoords = unwrap(meshCoords)
-        boundary = boundaryVertices(flatMeshCoords)
-        print(f"flatMeshCoords: {flatMeshCoords}\n")
 
         fitOption = context.scene.trim_options.fitOptions
         uvCoords = Trim.uvCoords(trim.getUvCoords(), flatMeshCoords, fitOption)
-        
-        print(f"trim.getUvCoords(): {trim.getUvCoords()}\n")
-        print(f"uvCoords: {uvCoords}\n")
 
         cls.apply(context, faces, uvCoords, uvLayer)
 

@@ -331,4 +331,3 @@ def runTests():
 
 if __name__ =="__main__":
     runTests()
-    print("\nTests done.\n")
