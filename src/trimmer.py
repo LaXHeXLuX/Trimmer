@@ -50,7 +50,7 @@ class Trimmer():
     def getUvLayer(bm):
         if not bm.loops.layers.uv.items():
             raise TrimmerException("The object does not have any UV maps!")
-        
+
         uvLayer = bm.loops.layers.uv.active
         if uvLayer is None:
             raise TrimmerException("The object does not have an active UV map!")
@@ -64,11 +64,11 @@ class Trimmer():
                 UVLoop = faces[i].loops[j][uvLayer]
                 coord = uvCoords[i][j]
                 UVLoop.uv = coord
-        
+
         if not temporary: 
             cls.currentReferenceCoords = uvCoords
             context.scene.trim_options.clear()
-            
+
     @classmethod
     def applyFaces(cls, context, faces, trim, uvLayer):
         meshCoords = Trim.parseMeshCoordinates(faces)
@@ -118,7 +118,7 @@ class Trimmer():
         selectedFaces = [face for face in bm.faces if face.select]
         if selectedFaces is None or selectedFaces == []:
             raise TrimmerException("No face selected!") # Error handling
-            
+
         face = selectedFaces[0]
 
         uvCoords = cls.uvCoordsFromFaces(face, uvLayer, single=True)
@@ -139,7 +139,7 @@ class Trimmer():
         obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
-        
+
         faces = cls.getFacesFromIndexes(bm)
         mirroredPoints = mirrorPoints(cls.uvCoordsFromFaces(faces, uvLayer))
         mirroredUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), mirroredPoints, cls.currentApplyOption)
@@ -161,7 +161,7 @@ class Trimmer():
                 raise TrimmerException(f"Parameter degrees for fit option {cls.currentApplyOption} can not be null!")
             rotatedUnfitUV = rotatePointsFit(cls.currentReferenceCoords, degrees)
             rotatedUV = Trim.uvCoords(cls.currentTrim.getUvCoords(), rotatedUnfitUV, cls.currentApplyOption)
-        
+
         cls.apply(context, faces, rotatedUV, uvLayer, temporary=True)
         bmesh.update_edit_mesh(obj.data)
 
@@ -184,7 +184,7 @@ class Trim(bpy.types.PropertyGroup):
 
     def setUvCoords(self, uvCoords):
         self.uvCoords.clear()
-        
+
         for coord in uvCoords:
             uvCoordItem = self.uvCoords.add()
             uvCoordItem.uv = coord[:]
@@ -194,7 +194,7 @@ class Trim(bpy.types.PropertyGroup):
 
         for coord in self.uvCoords:
             arr.append(coord.getVector())
-        
+
         return arr
 
     @staticmethod 
