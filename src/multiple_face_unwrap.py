@@ -99,15 +99,18 @@ def emptyMatrix(n, m):
 
     return matrix
 
-def graphOfFaces(mesh, seams = None):
+def graphOfFaces(mesh, seams = []):
     graphMatrix = emptyMatrix(len(mesh), len(mesh))
 
-    for i in range(len(mesh)):
-        for j in range(len(mesh)):
-            if i == j:
+    for i in range(len(mesh)-1):
+        for j in range(i+1, len(mesh)):
+            if (i, j) in seams:
                 continue
+
             edges = sharedEdges(mesh[i], mesh[j])
             graphMatrix[i][j] = edges
+            edges = sharedEdges(mesh[j], mesh[i])
+            graphMatrix[j][i] = edges
     
     return graphMatrix
 
@@ -160,11 +163,17 @@ def translationRotationMatrix(o1, o2, t1, t2):
 
     return T
 
-def unwrap(mesh, seams = None):
-    print("\nunwrap. mesh:")
-    for f in mesh:
-        print(f)
-    print()
+def validateSeams(seams, numberOfFaces):
+    validated = []
+    for seam in seams:
+        if max(seam) >= numberOfFaces:
+            raise Exception(f"Invalid seam parameter: seam {seam} is referencing indexes larger than the number of faces ({numberOfFaces})")
+        validated.append(tuple(sorted(seam)))
+
+    return validated
+
+def unwrap(mesh, seams = []):
+    seams = validateSeams(seams, len(mesh))
  
     mappedFaces = []
     mappedBy = []
@@ -177,7 +186,7 @@ def unwrap(mesh, seams = None):
     if islandCount == 0:
         raise UnwrapException("Mesh is empty!")
     if islandCount > 1:
-        raise UnwrapException(f"Can't unwrap mesh with more than 1 ({islandCount}) islands!")
+        raise UnwrapException(f"Can't unwrap mesh with more than 1 islands (currently {islandCount})!")
 
     stack = []
     stack.append((0, True, None, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>, <neighbourEdgeIndex>)
@@ -217,7 +226,7 @@ def unwrap(mesh, seams = None):
 
         if mappedFaces[index] != None:
             if compare(mappedFaces[index], transformedFace) != 0:
-                raise UnwrapException("Shape is not unwrappable without distorion")
+                raise UnwrapException("Shape is not unwrappable without distorion!\n(hint: consider marking some edges as seams)")
         else:
             mappedFaces[index] = transformedFace
             mappedBy[index].append((neighbourIndex, neighbourEdgeIndex))
