@@ -155,7 +155,7 @@ class Trimmer():
         faces = cls.getFacesFromIndexes(bm)
 
         if cls.currentApplyOption == 'FILL':
-            rotatedUV = rotatePointsFill(cls.currentReferenceCoords)
+            rotatedUV = rotatePointsFill(cls.uvCoordsFromFaces(faces, uvLayer))
         else:
             if degrees == None:
                 raise TrimmerException(f"Parameter degrees for fit option {cls.currentApplyOption} can not be null!")
