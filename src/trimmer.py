@@ -214,6 +214,9 @@ class Trim(bpy.types.PropertyGroup):
     def uvCoordsForFill(uvCoords, meshCoords):
         boundary = boundaryVertices(meshCoords)
 
+        if len(uvCoords) != len(boundary):
+            raise TrimmerException(f"Amount of UV coords ({len(uvCoords)}) doesn't match the amount of boundary coords ({len(boundary)})!")
+
         boundaryNormal = normal(*boundary[0:3])
         uvCoordsNormal = normal(*uvCoords[0:3])
         if compare(boundaryNormal, uvCoordsNormal) != 0:
