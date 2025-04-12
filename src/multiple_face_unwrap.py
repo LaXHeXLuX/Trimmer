@@ -182,18 +182,10 @@ def unwrap(mesh, seams = None):
     stack = []
     stack.append((0, True, None, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>, <neighbourEdgeIndex>)
 
-    print("graph:")
-    for i in range(len(graph)):
-        print(graph[i])
-    print()
-
     while len(stack) > 0:
         index, indexIncreasing, neighbourIndex, neighbourEdgeIndex = stack.pop()
-        #print(f"new loop. stack size: {len(stack)}")
-        #print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}, neighbourEdgeIndex {neighbourEdgeIndex}")
 
         if (neighbourIndex, neighbourEdgeIndex) in mappedBy[index]:
-            #print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
@@ -203,12 +195,10 @@ def unwrap(mesh, seams = None):
 
                 neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
                 stack.append((i, neighbourIndexIncreasing, index, edgeIndex))
-                #print(f"adding {(i, neighbourIndexIncreasing, index, edgeIndex)} to stack")
 
         F = copy.deepcopy(mesh[index])
         rotatedFace = deepToList(flatFaceCoordinates(F, indexIncreasing))
         rotatedFace = padPoints(rotatedFace, 2)
-        #print(f"rotatedFace {index}: {rotatedFace}")
 
         origin1 = rotatedFace[0]
         origin2 = rotatedFace[1]
