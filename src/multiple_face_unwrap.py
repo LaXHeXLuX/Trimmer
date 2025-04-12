@@ -239,11 +239,6 @@ def unwrap(mesh, seams = None):
 
 # Testing
 
-def testMethod(operation, inputs, output):
-    result = operation(*inputs)
-    if compare(result, output) != 0:
-        raise Exception(f"Test failed with {operation.__name__}({inputs}) = {result} != {output}")
-
 def test(inputArr, outputArr):
     result = unwrap(inputArr)
     if compare(result, outputArr) != 0:
