@@ -76,7 +76,8 @@ def flatFaceCoordinates(face, indexIncreasing):
     R = rotationMatrixToFlattenFace(face, indexIncreasing)
     return np.dot(np.array(face), R.T)
 
-def sharedEdge(f1, f2):
+def sharedEdges(f1, f2):
+    sharedEdges = []
     for i in range(len(f1)):
         for j in range(len(f2)):
             if f1[i] == f2[j]:
@@ -86,36 +87,34 @@ def sharedEdge(f1, f2):
                 nextJ = (j + 1) % len(f2)
 
                 if f1[prevI] == f2[prevJ] or f1[prevI] == f2[nextJ]:
-                    return (prevI, i)
-                if f1[nextI] == f2[prevJ] or f1[nextI] == f2[nextJ]:
-                    return (i, nextI)
-    return None
+                    sharedEdges.append((prevI, i))
+    return sharedEdges
 
 def emptyMatrix(n, m):
     matrix = []
     for i in range(n):
         matrix.append([])
         for j in range(m):
-            matrix[i].append(None)
+            matrix[i].append([])
 
     return matrix
 
-def graphOfFaces(mesh):
+def graphOfFaces(mesh, seams = None):
     graphMatrix = emptyMatrix(len(mesh), len(mesh))
 
     for i in range(len(mesh)):
         for j in range(len(mesh)):
             if i == j:
                 continue
-            edge = sharedEdge(mesh[i], mesh[j])
-            graphMatrix[i][j] = edge
+            edges = sharedEdges(mesh[i], mesh[j])
+            graphMatrix[i][j] = edges
     
     return graphMatrix
 
 def dfs(matrix, visited, node):
     visited[node] = True
     for neighbor in range(len(matrix)):
-        if matrix[node][neighbor] is not None and not visited[neighbor]:
+        if len(matrix[node][neighbor]) > 0 and not visited[neighbor]:
             dfs(matrix, visited, neighbor)
 
 def countIslands(matrix):
@@ -134,8 +133,8 @@ def countIslands(matrix):
 def vertexIndexIncreasing(mesh, f1Index, f2Index, face1Increasing, graph):
     f1 = mesh[f1Index]
     f2 = mesh[f2Index]
-    f1Edge = graph[f1Index][f2Index]
-    f2Edge = graph[f2Index][f1Index]
+    f1Edge = graph[f1Index][f2Index][0]
+    f2Edge = graph[f2Index][f1Index][0]
     f1EdgeValues = (f1[f1Edge[0]], f1[f1Edge[1]])
     f2EdgeValues = (f2[f2Edge[0]], f2[f2Edge[1]])
     return (f1EdgeValues[0] == f2EdgeValues[0]) ^ face1Increasing
@@ -161,14 +160,19 @@ def translationRotationMatrix(o1, o2, t1, t2):
 
     return T
 
-def unwrap(mesh):
+def unwrap(mesh, seams = None):
+    print("\nunwrap. mesh:")
+    for f in mesh:
+        print(f)
+    print()
+ 
     mappedFaces = []
     mappedBy = []
     for i in range(len(mesh)):
         mappedFaces.append(None)
         mappedBy.append([])
 
-    graph = graphOfFaces(mesh)
+    graph = graphOfFaces(mesh, seams)
     islandCount = countIslands(graph)
     if islandCount == 0:
         raise UnwrapException("Mesh is empty!")
@@ -176,33 +180,45 @@ def unwrap(mesh):
         raise UnwrapException(f"Can't unwrap mesh with more than 1 ({islandCount}) islands!")
 
     stack = []
-    stack.append((0, True, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>)
+    stack.append((0, True, None, None)) # (<faceIndex>, <vertexIndexIncreasing>, <neighbourIndex>, <neighbourEdgeIndex>)
+
+    print("graph:")
+    for i in range(len(graph)):
+        print(graph[i])
+    print()
 
     while len(stack) > 0:
-        index, indexIncreasing, neighbourIndex = stack.pop()
+        index, indexIncreasing, neighbourIndex, neighbourEdgeIndex = stack.pop()
+        #print(f"new loop. stack size: {len(stack)}")
+        #print(f"index {index}, indexIncreasing {indexIncreasing}, neighbourIndex {neighbourIndex}, neighbourEdgeIndex {neighbourEdgeIndex}")
 
-        if neighbourIndex in mappedBy[index]:
+        if (neighbourIndex, neighbourEdgeIndex) in mappedBy[index]:
+            #print(f"{index} already mapped from {neighbourIndex}")
             continue
 
         for i in range(len(graph[index])):
-            if graph[index][i] == None or i == neighbourIndex:
-                continue
-            neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
-            stack.append((i, neighbourIndexIncreasing, index))
+            for edgeIndex in range(len(graph[index][i])):
+                if i == neighbourIndex and edgeIndex == neighbourEdgeIndex:
+                    continue
+
+                neighbourIndexIncreasing = vertexIndexIncreasing(mesh, index, i, indexIncreasing, graph)
+                stack.append((i, neighbourIndexIncreasing, index, edgeIndex))
+                #print(f"adding {(i, neighbourIndexIncreasing, index, edgeIndex)} to stack")
 
         F = copy.deepcopy(mesh[index])
         rotatedFace = deepToList(flatFaceCoordinates(F, indexIncreasing))
         rotatedFace = padPoints(rotatedFace, 2)
+        #print(f"rotatedFace {index}: {rotatedFace}")
 
         origin1 = rotatedFace[0]
         origin2 = rotatedFace[1]
         target1 = rotatedFace[0]
         target2 = rotatedFace[1]
         if neighbourIndex != None:
-            origin1 = rotatedFace[graph[index][neighbourIndex][0]]
-            origin2 = rotatedFace[graph[index][neighbourIndex][1]]
-            target1 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][0]]
-            target2 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][1]]
+            origin1 = rotatedFace[graph[index][neighbourIndex][0][0]]
+            origin2 = rotatedFace[graph[index][neighbourIndex][0][1]]
+            target1 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][0][0]]
+            target2 = mappedFaces[neighbourIndex][graph[neighbourIndex][index][0][1]]
             if indexIncreasing:
                 target1, target2 = target2, target1
         
@@ -214,8 +230,10 @@ def unwrap(mesh):
                 raise UnwrapException("Shape is not unwrappable without distorion")
         else:
             mappedFaces[index] = transformedFace
-            mappedBy[index].append(neighbourIndex)
-            if neighbourIndex != None: mappedBy[neighbourIndex].append(index)
+            mappedBy[index].append((neighbourIndex, neighbourEdgeIndex))
+            if neighbourIndex != None: mappedBy[neighbourIndex].append((index, edgeIndex))
+
+    print(f"mappedFaces: {mappedFaces}")
 
     return roundList(deepToList(mappedFaces))
 
@@ -327,6 +345,16 @@ def runTests():
     test(
         [[(-1, -1, -1), (-1, -1, 0), (-1, -1, 1), (-1, 1, 1), (-1, 1, -1)]], 
         [[(-1, -1), (0, -1), (1, -1), (1, 1), (-1, 1)]]
+    )
+    test(
+        [
+            [(0, 0, 0), (1, 0, 0), (1, 1, 0), (2, 1, 0), (2, 0, 0), (3, 0, 0), (3, 2, 0), (0, 2, 0)],
+            [(0, 0, 0), (0, 0, -1), (3, 0, -1), (3, 0, 0), (2, 0, 0), (1, 0, 0)]
+        ], 
+        [
+            [(0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (3, 0), (3, 2), (0, 2)],
+            [(0, 0), (0, -1), (3, -1), (3, 0), (2, 0), (1, 0)]
+        ]
     )
 
 if __name__ =="__main__":
