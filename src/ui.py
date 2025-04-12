@@ -43,7 +43,7 @@ class TrimOptions(bpy.types.PropertyGroup):
         self.updates_off = False
 
     def clear(self):
-        for prop in ['fitOptions', 'rotation', 'posX', 'posY']:
+        for prop in ['rotation', 'posX', 'posY']:
             if prop in self.__class__.bl_rna.properties:
                 self.reset(prop)
 
