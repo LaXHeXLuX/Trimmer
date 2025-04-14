@@ -1,5 +1,5 @@
 import bpy
-from .trimmer import Trimmer
+from .trimmer import Trimmer, TrimmerException
 
 class TrimmerUI(bpy.types.Panel):
     bl_label = "Trimmer"
@@ -86,7 +86,11 @@ class ApplyTrimSettings(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Trimmer"
-
+    
+    @classmethod
+    def poll(cls, context):
+        return len(context.scene.trim_collection) > 0
+    
     def drawFitOption(self, context):
         layout = self.layout
         scene = context.scene
@@ -180,18 +184,22 @@ class AbstractOperator(bpy.types.Operator):
         return descriptions[properties.button_action]
 
     def execute(self, context):
-        if self.button_action == 'APPLY_TEXTURE':
-            Trimmer.apply_texture(context, self.index)
-        elif self.button_action == 'ADD_TRIM':
-            Trimmer.add_trim(context)
-        elif self.button_action == 'DELETE_TRIM':
-            Trimmer.delete_trim(context, self.index)
-        elif self.button_action == 'MIRROR_TRIM':
-            Trimmer.mirror_trim(context)
-        elif self.button_action == 'ROTATE_TRIM':
-            Trimmer.rotate_trim(context)
-        elif self.button_action == 'CONFIRM_TRIM':
-            ApplyTrimSettings.confirmTrim()
-        else:
-            raise Exception(f"Unknown button action: {self.button_action}")
-        return {'FINISHED'}
+        try:
+            if self.button_action == 'APPLY_TEXTURE':
+                Trimmer.apply_texture(context, self.index)
+            elif self.button_action == 'ADD_TRIM':
+                Trimmer.add_trim(context)
+            elif self.button_action == 'DELETE_TRIM':
+                Trimmer.delete_trim(context, self.index)
+            elif self.button_action == 'MIRROR_TRIM':
+                Trimmer.mirror_trim(context)
+            elif self.button_action == 'ROTATE_TRIM':
+                Trimmer.rotate_trim(context)
+            elif self.button_action == 'CONFIRM_TRIM':
+                ApplyTrimSettings.confirmTrim()
+            else:
+                raise Exception(f"Unknown button action: {self.button_action}")
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}

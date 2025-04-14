@@ -109,6 +109,9 @@ class Trimmer():
         print("\n--------------------------------------------")
         print("apply texture")
 
+        if cls.currentTrim != None:
+            raise TrimmerException("Confirm previous trim before applying new one!")
+
         obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
