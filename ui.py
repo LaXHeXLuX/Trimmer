@@ -43,7 +43,7 @@ class TrimOptions(bpy.types.PropertyGroup):
         self.updates_off = False
 
     def clear(self):
-        for prop in ['rotation', 'posX', 'posY']:
+        for prop in ['rotation']:
             if prop in self.__class__.bl_rna.properties:
                 self.reset(prop)
 
@@ -62,20 +62,6 @@ class TrimOptions(bpy.types.PropertyGroup):
     rotation: bpy.props.FloatProperty(
         name = "Rotation",
         description = "Rotate the UV",
-        default = 0.0,
-        update = rotation_update
-    ) # type: ignore
-
-    posX: bpy.props.FloatProperty(
-        name = "X Position",
-        description = "Move the UV along X-axis",
-        default = 0.0,
-        update = rotation_update
-    ) # type: ignore
-
-    posY: bpy.props.FloatProperty(
-        name = "Y Position",
-        description = "Move the UV along Y-axis",
         default = 0.0,
         update = rotation_update
     ) # type: ignore
@@ -110,12 +96,10 @@ class ApplyTrimSettings(bpy.types.Panel):
 
     def drawFitSettings(self, context):
         layout = self.layout
-        scene = context.scene
-        AbstractOperator.init(layout, 'MIRROR_TRIM')
-        layout.prop(scene.trim_options, "rotation")
-        
-        layout.prop(scene.trim_options, "posX")
-        layout.prop(scene.trim_options, "posY")
+        actionSettingsRow = layout.row()
+
+        AbstractOperator.init(actionSettingsRow, 'MIRROR_TRIM')
+        actionSettingsRow.prop(context.scene.trim_options, "rotation")
         
         layout.row()
         AbstractOperator.init(layout, 'CONFIRM_TRIM')
