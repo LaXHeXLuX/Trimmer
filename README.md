@@ -1,15 +1,16 @@
 # Trimmer
-## Overview
-A Trim-Sheet Workflow Plugin For Blender
+## Introduction
+Trimmer is an add-on for Blender. Its goal is to simplify the process of mapping an existing trim-sheet to a model. The basic workflow is: 
+- Preliminary: creating a plane divided into faces that reference the positions of trims on the trimsheet
+- Adding the trim locations to the add-on panel
+- Applying a trim to a selected face or faces
+- Rotating and reflecting the applied trim if necessary
 
-## Installation & Usage  
-### Prerequisites  
-- Blender 2.80 or later 
-### Installation
-- Download the ZIP folder of the latest stable release
-- Launch Blender
-- Go to __Edit__ -> __Preferences__ -> __Add-ons__
-- Click the top-right dropdown menu and select _Install from Disk..._
-- Locate the ZIP folder and select __Install from Disk__
+## Installation
+Download the latest release of Trimmer from [the github page](https://github.com/LaXHeXLuX/Trimmer/releases).
+In Blender 2.80 or later, go to *Edit* → *Preferences* → *Add-ons* → *Install from Disk*. Browse to the downloaded zip file, select it, and **Install from Disk**.
+
+The add-on can now be found in *Edit* → *Preferences* → *Add-ons*, where it can be enabled, disabled, or uninstalled.
+
 ### Usage
-To be determined
+For a more thorough manual including usage explanation with examples, check out [the PDF manual](MANUAL.pdf) in the project folder
