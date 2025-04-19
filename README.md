@@ -1,16 +1,104 @@
 # Trimmer
+
 ## Introduction
+
 Trimmer is an add-on for Blender. Its goal is to simplify the process of mapping an existing trim-sheet to a model. The basic workflow is: 
-- Preliminary: creating a plane divided into faces that reference the positions of trims on the trimsheet
-- Adding the trim locations to the add-on panel
-- Applying a trim to a selected face or faces
-- Rotating and reflecting the applied trim if necessary
+
+* Preliminary: creating a plane divided into faces that reference the positions of trims on the trim-sheet  
+* Adding the trim locations to the add-on panel  
+* Applying a trim to a selected face or faces  
+* Rotating and reflecting the applied trim if necessary
 
 ## Installation
-Download the latest release of Trimmer from [the github page](https://github.com/LaXHeXLuX/Trimmer/releases).
-In Blender 2.80 or later, go to *Edit* → *Preferences* → *Add-ons* → *Install from Disk*. Browse to the downloaded zip file, select it, and **Install from Disk**.
 
-The add-on can now be found in *Edit* → *Preferences* → *Add-ons*, where it can be enabled, disabled, or uninstalled.
+Download release 0.2.1 of Trimmer from [the github page](https://github.com/LaXHeXLuX/Trimmer/releases).  
+In Blender 2.80 or later, go to *Edit → Preferences → Add-ons → Install from Disk*. Browse to the downloaded zip file, select it, and *Install from Disk*.  
+The add-on can now be found in the add-ons list, where it can be enabled, disabled, or uninstalled.
+
+## Preliminary work
+
+Before using the add-on, a reference object to the trim-sheet must be created. In Blender, create a new Plane object. In Edit mode, divide the plane into rectangular faces so that each trim is covered by a face.   
+Below are two examples of a trim-sheet and the respective face layout in Blender:
+
+| ![Trim sheet 1](/pictures/trimsheet1.png) | ![Trim sheet 1 divided](/pictures/trimsheet1_divided.png) |
+|:---:|:---:|
+| *Trim-sheet 1: wood textures and iron decals* | *Trim-sheet 1 divided into faces* |
+
+| ![Trim sheet 2](/pictures/trimsheet2.png) | ![Trim sheet 2 divided](/pictures/trimsheet2_divided.png) |
+|:---:|:---:|
+| *Trim-sheet 2: wood textures and iron decals* | *Trim-sheet 2 divided into faces* |
+
+The main techniques for the face subdivision are:
+
+* Knife tool  
+* Loop cuts  
+* Edge subdivision
+
+with the exact method left up to the user’s preference.
+
+## Manual
+
+### Panel location
+
+After installing the add-on, a new Panel *Trimmer* appears in the 3D viewport sidebar. The sidebar can be opened by pressing N:  
+| ![Panel location](/pictures/panel_location.png) |
+|:---:|
+| *A new panel named “Trimmer” visible in 3D viewport’s sidebar* |
+
+### Setup Instructions
+
+At first, the *Trimmer* panel only shows a single *Add trim* button, because no trims have been added to the add-on yet. To add trims, select a face from your trim-sheet plane and click *Add trim*. A new row appears in the panel:  
+![Add trim](/pictures/add_trim.gif)  
+Whenever you need to remove a trim, simply press the X button. After adding all trims, the panel will look similar to this:  
+![Setup complete](/pictures/setup_complete.png)  
+The add-on setup is now complete.
 
 ### Usage
-For a more thorough manual including usage explanation with examples, check out [the PDF manual](MANUAL.pdf) in the project folder
+
+Each trim can be applied to either *Fit* or *Fill* the trim texture:
+
+Fill and Fit… ja näited
+
+Mirror … näited
+
+Rotation .. näited (ja siin saab ära märkida et filli ja fiti puhul on see natuke erinev)
+
+To apply a trim, first choose the trim fitting option from the dropdown menu. Select a face (or a group of faces) in Edit mode and click *Apply* on the preferred trim row. For the *Fill* fitting option, the face (or the boundary of a group of faces) must have the same amount of defining vertices as the trim.   
+After applying a trim, press confirm if you wish to finalise the trim position.  
+Depending on the fitting option, the *Settings* panel now looks like this:
+![Trim sheet 2](/pictures/trimsheet2.png)
+
+| *Panel appearance for Fill option* | *Panel appearance for Fit, Fit X, Fit Y options* |
+| :---: | :---: |
+
+*Mirror* will mirror the selected faces’ UV map along the Y axis. *Rotate* will work differently based on the fit option:
+
+* Fill: the UV map is rotated one vertex clockwise  
+* Fit: The slider’s value will define the UV map’s rotation in degrees, counter-clockwise
+
+Pressing *Confirm trim* is necessary before another trim can be applied.
+
+### Example
+
+Let’s go through an example. I have a barrel model that I need to texture using a wood trim-sheet. I have kept the topology as simple as possible, making the final scaling adjustments after texturing to simplify the texturing process.   
+![Trim sheet 2](/pictures/trimsheet2.png)
+
+In the image above, the model and its default UV map can be seen.   
+The Preliminary work (adding the trims into the addon) has been done beforehand.  
+Depending on preference, the texturing may be done while in the *UV editing* view, or in the *Layout* view, without checking the UV Editor at all. To follow along easier, I will do it while in the *UV Editing* view.
+
+First I will texture the bases of the barrel. Since those are circular with an arbitrary number of sides, I have to use the *Fit* option, and using *Fill* would yield the following error:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+Trying the same with *Fit* option and *Laminate* trim will give the following result:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+If it is preferred to have the trim at another angle (e.g. 60 degrees), that can be accomplished using the rotation slider:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+Similarly, a trim can be mirrored with the *Mirror* button:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+After this, I confirm the trim. Next, I texture the sides. In order to correctly unwrap a loop of faces, an edge must be marked as a seam:   
+![Trim sheet 2](/pictures/trimsheet2.png)  
+Now, a loop of faces can be textured. In the below image I have textured all the side loops, alternating reclaimed wood (mirroring it in the center to avoid creating a pattern) and a black metallic bar:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+Lastly, I make a single modeling adjustment, increasing the size of the barrel in the center to make it more authentic:  
+![Trim sheet 2](/pictures/trimsheet2.png)  
+With this, the example texturing is complete.
