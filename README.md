@@ -26,7 +26,7 @@ Below are two examples of a trim-sheet and the respective face layout in Blender
 
 | ![Trim sheet 2](/pictures/preliminary/trimsheet2.png) | ![Trim sheet 2 divided](/pictures/preliminary/trimsheet2_divided.png) |
 |:---:|:---:|
-| *Trim-sheet 2: wood textures and iron decals* | *Trim-sheet 2 divided into faces* |
+| *Trim-sheet 2: varying materials and signs* | *Trim-sheet 2 divided into faces* |
 
 The main techniques for the face subdivision are:
 
