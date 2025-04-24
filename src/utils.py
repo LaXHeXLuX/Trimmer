@@ -52,7 +52,7 @@ def crossProduct(v1, v2):
 
 # Standard utilities
 
-coefficient = 8
+coefficient = 6
 
 def compare(a1, a2, checkType = False):
     try:
