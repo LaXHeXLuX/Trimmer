@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Trimmer",
     "author": "Laas Hendrik Lumberg",
-    "version": (0, 2, 1),
+    "version": (0, 2, 2),
     "blender": (2, 80, 0),
     "location": "3D View > Tool Panel",
     "description": "Allows easier positioning of UVs on texture atlas and trim-sheet based texture sheets",
