@@ -1,0 +1,10 @@
+[blender_extension]
+version = "0.2.2"
+blender_version_min = "2.80"
+
+[addon]
+module = "trimmer"
+display_name = "Trimmer"
+author = "Laas Hendrik Lumberg"
+description = "Allows easier positioning of UVs on texture atlas and trim-sheet based texture sheets"
+category = "UV"
