@@ -7,6 +7,6 @@ tagline = "Simplified texturing workflow for trim-sheets"
 maintainer = "Laas Hendrik Lumberg"
 type = "add-on"
 
-blender_version_min = "2.80"
+blender_version_min = "2.80.0"
 
-license = "GPL-3.0"
+license = ["GPL-3.0"]
