@@ -17,7 +17,17 @@ The add-on can now be found in the add-ons list, where it can be enabled, disabl
 
 ## Preliminary work
 
-Before using the add-on, a reference object to the trim-sheet must be created. In Blender, create a new Plane object. In Edit mode, divide the plane into rectangular faces so that each trim is covered by a face.   
+Before using the add-on, a reference object to the trim-sheet must be created. In Blender, create a new Plane object.  
+In Edit mode, divide the plane into rectangular faces so that each trim is covered by a face.  
+
+The main techniques for the face subdivision are:
+
+* Knife tool  
+* Loop cuts  
+* Edge subdivision
+
+with the exact method left up to the user’s preference.  
+
 Below are two examples of a trim-sheet and the respective face layout in Blender:
 
 | ![Trim sheet 1](/pictures/preliminary/trimsheet1.png) | ![Trim sheet 1 divided](/pictures/preliminary/trimsheet1_divided.png) |
@@ -27,14 +37,6 @@ Below are two examples of a trim-sheet and the respective face layout in Blender
 | ![Trim sheet 2](/pictures/preliminary/trimsheet2.png) | ![Trim sheet 2 divided](/pictures/preliminary/trimsheet2_divided.png) |
 |:---:|:---:|
 | *Trim-sheet 2: varying materials and signs* | *Trim-sheet 2 divided into faces* |
-
-The main techniques for the face subdivision are:
-
-* Knife tool  
-* Loop cuts  
-* Edge subdivision
-
-with the exact method left up to the user’s preference.
 
 ## Manual
 
