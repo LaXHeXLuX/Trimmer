@@ -51,7 +51,7 @@ After installing the add-on, a new Panel *Trimmer* appears in the 3D viewport si
 
 At first, the *Trimmer* panel only shows a single *Add trim* button, because no trims have been added to the add-on yet. To add trims, select a face from your trim-sheet plane and click *Add trim*. A new row appears in the panel:  
 ![Add trim](/pictures/manual_usage/add_trim.gif)  
-Whenever you need to remove a trim, simply press the X button. After adding all trims, the panel will look similar to this:  
+Whenever you need to remove a trim, press the X button. After adding all trims, the panel will look similar to this:  
 ![Setup complete](/pictures/manual_usage/setup_complete.png)  
 The add-on setup is now complete.
 
@@ -64,7 +64,7 @@ Each trim can be applied to either *Fit* or *Fill* the trim texture:
 * The *Fill* option will stretch the selection to fill the trim:  
 ![Apply Fill](/pictures/manual_usage/apply_fill.gif)  
 
-After applying a trim, options for *Mirror* and *Rotate*, and *Confirm* appear. When you're happy with the trim position, press *Confirm* to finalise it.
+After applying a trim, options for *Mirror*, *Rotate*, and *Confirm* appear. When you're happy with the trim position, press *Confirm* to finalise it.
 
 The *Mirror* button mirrors the applied selection across the Y-axis:
 ![Mirror](/pictures/manual_usage/mirror.gif)
