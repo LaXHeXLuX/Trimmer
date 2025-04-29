@@ -87,13 +87,11 @@ class ApplyTrimSettings(bpy.types.Panel):
     
     def drawFitOption(self, context):
         layout = self.layout
-        scene = context.scene
         layout.label(text="Trim fitting options:")
-        layout.prop(scene.trim_options, "fitOptions")
+        layout.prop(context.scene.trim_options, "fitOptions")
 
     def drawFillSettings(self, context):
         layout = self.layout
-        scene = context.scene
         actionSettingsRow = layout.row()
         
         AbstractOperator.init(actionSettingsRow, 'MIRROR_TRIM')
@@ -107,8 +105,10 @@ class ApplyTrimSettings(bpy.types.Panel):
         actionSettingsRow = layout.row()
 
         AbstractOperator.init(actionSettingsRow, 'MIRROR_TRIM')
-        actionSettingsRow.prop(context.scene.trim_options, "rotation")
-        
+        subRow = actionSettingsRow.row(align=True)
+        AbstractOperator.init(subRow, 'ROTATE_TRIM_90')
+        subRow.prop(context.scene.trim_options, "rotation")
+
         layout.row()
         AbstractOperator.init(layout, 'CONFIRM_TRIM')
 
