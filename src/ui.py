@@ -126,7 +126,7 @@ class ApplyTrimSettings(bpy.types.Panel):
         Trimmer.clear()
 
 class AbstractOperator(bpy.types.Operator):
-    bl_idname = "object.ao"
+    bl_idname = "trimmer.ao"
     bl_label = ""
 
     button_action: bpy.props.StringProperty(default="TEST") # type: ignore
@@ -156,7 +156,7 @@ class AbstractOperator(bpy.types.Operator):
             if index == None:
                 raise Exception(f"Button {button_action} needs an index!")
 
-        ao_button = layout.operator("object.ao", text=texts[button_action], icon=icons[button_action])
+        ao_button = layout.operator("trimmer.ao", text=texts[button_action], icon=icons[button_action])
         ao_button.button_action = button_action
 
         if button_action in ['APPLY_TEXTURE', 'DELETE_TRIM']:
