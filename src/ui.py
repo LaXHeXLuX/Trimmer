@@ -139,6 +139,7 @@ class AbstractOperator(bpy.types.Operator):
             'DELETE_TRIM': None,
             'MIRROR_TRIM': "Mirror",
             'ROTATE_TRIM': "Rotate",
+            'ROTATE_TRIM_90': '90°',
             'CONFIRM_TRIM': "Confirm trim"
         }
         icons = {
@@ -147,6 +148,7 @@ class AbstractOperator(bpy.types.Operator):
             'DELETE_TRIM': 'X',
             'MIRROR_TRIM': 'MOD_MIRROR',
             'ROTATE_TRIM': 'FILE_REFRESH',
+            'ROTATE_TRIM_90': 'FILE_REFRESH',
             'CONFIRM_TRIM': 'NONE'
         }
 
@@ -170,6 +172,7 @@ class AbstractOperator(bpy.types.Operator):
             'DELETE_TRIM': "Delete the trim",
             'MIRROR_TRIM': "Mirror the trim UV",
             'ROTATE_TRIM': "Rotate the trim UV",
+            'ROTATE_TRIM_90': "Rotate the   UV by 90 degrees",
             'CONFIRM_TRIM': "Confirm trim placement"
         }
 
@@ -187,6 +190,9 @@ class AbstractOperator(bpy.types.Operator):
                 Trimmer.mirror_trim(context)
             elif self.button_action == 'ROTATE_TRIM':
                 Trimmer.rotate_trim(context)
+            elif self.button_action == 'ROTATE_TRIM_90':
+                trim_options = context.scene.trim_options
+                trim_options.rotation = (trim_options.rotation - 90) % 360 # wrap around after 360
             elif self.button_action == 'CONFIRM_TRIM':
                 ApplyTrimSettings.confirmTrim()
             else:
