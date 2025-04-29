@@ -142,14 +142,6 @@ class Trimmer():
         trim.init(uvCoords, len(context.scene.trim_collection))
 
     @classmethod
-    def delete_trim(cls, context, index):
-        trims = context.scene.trim_collection
-        if 0 <= index < len(trims):
-            trims.remove(index)
-        else:
-            raise IndexError(f"Index {index} is out of range for the trim collection (length {len(trims)}).")
-
-    @classmethod
     def mirror_trim(cls, context):
         obj = cls.getObject(context)
         bm = cls.getNewBm(obj)

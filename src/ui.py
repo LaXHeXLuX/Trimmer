@@ -26,6 +26,14 @@ class TrimmerUI(bpy.types.Panel):
 
         AbstractOperator.init(layout, 'ADD_TRIM')
 
+    @classmethod
+    def deleteTrim(cls, context, index):
+        trims = context.scene.trim_collection
+        if 0 <= index < len(trims):
+            trims.remove(index)
+        else:
+            raise IndexError(f"Index {index} is out of range for the trim collection (length {len(trims)}).")
+
 class TrimOptions(bpy.types.PropertyGroup):
     items = [
         ('FILL', "Fill", "Fill the trim"),
@@ -174,7 +182,7 @@ class AbstractOperator(bpy.types.Operator):
             elif self.button_action == 'ADD_TRIM':
                 Trimmer.add_trim(context)
             elif self.button_action == 'DELETE_TRIM':
-                Trimmer.delete_trim(context, self.index)
+                TrimmerUI.deleteTrim(context, self.index)
             elif self.button_action == 'MIRROR_TRIM':
                 Trimmer.mirror_trim(context)
             elif self.button_action == 'ROTATE_TRIM':
