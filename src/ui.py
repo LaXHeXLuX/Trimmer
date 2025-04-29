@@ -42,13 +42,13 @@ class TrimOptions(bpy.types.PropertyGroup):
         ('FIT', "Fit", "Fit inside the trim"),
     ]
 
-    updates_off: bpy.props.BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'}) # type: ignore
+    updatesOff: bpy.props.BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'}) # type: ignore
 
     def reset(self, prop):
         default = self.__class__.bl_rna.properties[prop].default
-        self.updates_off = True
+        self.updatesOff = True
         setattr(self, prop, default)
-        self.updates_off = False
+        self.updatesOff = False
 
     def clear(self):
         for prop in ['rotation']:
@@ -62,8 +62,8 @@ class TrimOptions(bpy.types.PropertyGroup):
         default = 'FILL'
     ) # type: ignore
 
-    def rotation_update(self, context):
-        if self.updates_off:
+    def rotationUpdate(self, context):
+        if self.updatesOff:
             return
         Trimmer.rotate_trim(context, degrees = self.rotation)
 
@@ -71,7 +71,7 @@ class TrimOptions(bpy.types.PropertyGroup):
         name = "Rotation",
         description = "Rotate the UV",
         default = 0.0,
-        update = rotation_update
+        update = rotationUpdate
     ) # type: ignore
 
 class ApplyTrimSettings(bpy.types.Panel):
