@@ -64,7 +64,7 @@ Each trim can be applied to either *Fit* or *Fill* the trim texture:
 * The *Fill* option will stretch the selection to fill the trim:  
 ![Apply Fill](/pictures/manual_usage/apply_fill.gif)  
 
-After applying a trim, options for *Mirror*, *Rotate*, and *Confirm* appear. When you're happy with the trim position, press *Confirm* to finalise it.
+After applying a trim, options for *Mirror*, *Rotate*, and *Confirm* appear. When you're happy with the trim position, pressing *Confirm* will finalise it.
 
 The *Mirror* button mirrors the applied selection across the Y-axis:
 ![Mirror](/pictures/manual_usage/mirror.gif)
