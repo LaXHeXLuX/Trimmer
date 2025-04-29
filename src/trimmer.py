@@ -105,13 +105,7 @@ class Trimmer():
         cls.currentTrim = trim
 
     @classmethod
-    def apply_texture(cls, context, index):
-        print("\n--------------------------------------------")
-        print("apply texture")
-
-        if cls.currentTrim != None:
-            raise TrimmerException("Confirm previous trim before applying new one!")
-
+    def apply_texture(cls, context, trim):
         obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
@@ -120,7 +114,6 @@ class Trimmer():
         if selectedFaces is None or selectedFaces == []:
             raise TrimmerException("No face selected!")
 
-        trim = context.scene.trim_collection[index]
         if trim is None:
             raise TrimmerException("Trim is null!")
 

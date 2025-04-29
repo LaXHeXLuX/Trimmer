@@ -170,7 +170,7 @@ class AbstractOperator(bpy.types.Operator):
     def execute(self, context):
         try:
             if self.button_action == 'APPLY_TEXTURE':
-                Trimmer.apply_texture(context, self.index)
+                Trimmer.apply_texture(context, context.scene.trim_collection[self.index])
             elif self.button_action == 'ADD_TRIM':
                 Trimmer.add_trim(context)
             elif self.button_action == 'DELETE_TRIM':
