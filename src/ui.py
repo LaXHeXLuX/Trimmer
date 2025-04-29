@@ -55,11 +55,31 @@ class TrimOptions(bpy.types.PropertyGroup):
             if prop in self.__class__.bl_rna.properties:
                 self.reset(prop)
 
+    previousFitOptionValue: bpy.props.StringProperty(default='FILL') # type: ignore
+
+    def show_error(self, context, message):
+        def draw(self, context):
+            self.layout.label(text=message)
+
+        context.window_manager.popup_menu(draw, title="Error", icon='ERROR')
+
+    def fitOptionUpdate(self, context):
+        if self.previousFitOptionValue == self.fitOptions or Trimmer.currentTrim == None:
+            self.previousFitOptionValue = self.fitOptions
+            return
+        try:
+            Trimmer.apply_texture(context, Trimmer.currentTrim)
+            self.previousFitOptionValue = self.fitOptions
+        except TrimmerException as te:
+            self.fitOptions = self.previousFitOptionValue
+            self.show_error(context, str(te))
+
     fitOptions: bpy.props.EnumProperty(
         name = "",
         description = "Select how to map the selected face(s) to the trim",
         items = items,
-        default = 'FILL'
+        default = 'FILL',
+        update = fitOptionUpdate
     ) # type: ignore
 
     def rotationUpdate(self, context):
@@ -113,8 +133,7 @@ class ApplyTrimSettings(bpy.types.Panel):
         AbstractOperator.init(layout, 'CONFIRM_TRIM')
 
     def draw(self, context):
-        if Trimmer.currentApplyOption == None:
-            self.drawFitOption(context)
+        self.drawFitOption(context)
         if Trimmer.currentApplyOption == 'FILL':
             self.drawFillSettings(context)
         elif Trimmer.currentApplyOption in ['FIT', 'FIT_X', 'FIT_Y']:
@@ -181,6 +200,7 @@ class AbstractOperator(bpy.types.Operator):
     def execute(self, context):
         try:
             if self.button_action == 'APPLY_TEXTURE':
+                ApplyTrimSettings.confirmTrim()
                 Trimmer.apply_texture(context, context.scene.trim_collection[self.index])
             elif self.button_action == 'ADD_TRIM':
                 Trimmer.add_trim(context)
