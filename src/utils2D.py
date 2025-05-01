@@ -1,10 +1,6 @@
 import numpy as np
 import copy
-
-if __name__ == '__main__':
-    from utils import *
-else:
-    from .utils import *
+from .utils import *
 
 # Boundary vertices
 
