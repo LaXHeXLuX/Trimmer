@@ -26,14 +26,11 @@ def register():
         bpy.utils.register_class(c)
 
 def unregister():
-    for c in classes2[::-1]:
+    for c in (classes1 + classes2)[::-1]:
         bpy.utils.unregister_class(c)
 
     del bpy.types.Scene.trim_options
     del bpy.types.Scene.trim_collection
-
-    for c in classes1[::-1]:
-        bpy.utils.unregister_class(c)
 
 if __name__ == "__main__":
     register()
