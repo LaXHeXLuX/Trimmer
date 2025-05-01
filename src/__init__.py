@@ -8,14 +8,19 @@ bl_info = {
     "category": "UV"
 }
 
-import bpy
-from . import ui
-from . import trimmer
+def _get_registration_data():
+    import bpy
+    from . import ui
+    from . import trimmer
 
-classes1 = [trimmer.UVCoord, trimmer.Trim, ui.AbstractOperator, ui.TrimOptions]
-classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings]
+    classes1 = [trimmer.UVCoord, trimmer.Trim, ui.AbstractOperator, ui.TrimOptions]
+    classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings]
+
+    return bpy, trimmer, ui, classes1, classes2
 
 def register():
+    bpy, trimmer, ui, classes1, classes2 = _get_registration_data()
+
     for c in classes1:
         bpy.utils.register_class(c)
         
@@ -26,6 +31,8 @@ def register():
         bpy.utils.register_class(c)
 
 def unregister():
+    bpy, _, _, classes1, classes2 = _get_registration_data()
+    
     for c in (classes1 + classes2)[::-1]:
         bpy.utils.unregister_class(c)
 
