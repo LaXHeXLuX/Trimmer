@@ -1,9 +1,19 @@
+from src.utils import add, subtract, multiply, applyMatrix, compare, roundList, pointIsCollinear, compactPoints, padPoints
+from src.utils2D import boundaryVertices, mvcWeights, applyMvcWeights, containedPolygon, containedPolygons, mirrorPoints, rotatePointsFill, rotatePointsFit
+from src.multiple_face_unwrap import unwrap, UnwrapException
+
 # Testing utilities
 
 def test(operation, inputs, output):
-    result = operation(*inputs)
+    if operation == None:
+        result = inputs
+        messagePart = f"{inputs} "
+    else:
+        result = operation(*inputs)
+        messagePart = f"{operation.__name__}({inputs}) = \n{result} "
+
     if compare(result, output) != 0:
-        raise Exception(f"Test failed with {operation.__name__}({inputs}) = \n{result} \n!= \n{output}")
+        raise Exception(f"Test failed with {messagePart}\n!= \n{output}")
 
 # utils
 
@@ -403,11 +413,37 @@ def testUnwrapping():
     seams = [(1, 2), (1, 3), (1, 5), (2, 4), (3, 4), (3, 5), (4, 5)]
     testUnwrap(cube, unwrapped, seams)
 
-if __name__ == '__main__':
-    from src.utils import *
-    from src.utils2D import *
-    from src.multiple_face_unwrap import *
+# metadata matches
 
+def get_bl_info_from_init():
+    from src import bl_info
+    return bl_info
+
+def get_manifest_info(path):
+    import toml
+    with open(path, encoding="utf-8") as f:
+        return toml.load(f)
+
+def testMetadataMatching():
+    bl_info = get_bl_info_from_init()
+    manifest = get_manifest_info("src/blender_manifest.toml")
+
+    test(None, bl_info["name"], manifest["name"])
+    test(None, bl_info["author"], manifest["maintainer"])
+    test(None, bl_info["version"], tupleFromToml(manifest["version"]))
+    test(None, bl_info["blender"], tupleFromToml(manifest["blender_version_min"]))
+
+def tupleFromToml(tomlVersion):
+    return tuple(int(digit) for digit in tomlVersion.split("."))
+
+# main
+
+def runTests():
     testUtils()
     testUtils2D()
     testUnwrapping()
+
+    testMetadataMatching()
+
+if __name__ == '__main__':
+    runTests()
