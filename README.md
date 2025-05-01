@@ -11,8 +11,8 @@ Trimmer is an add-on for Blender. Its goal is to simplify the process of mapping
 
 ## Installation
 
-Download release 0.2.3 of Trimmer from [the github page](https://github.com/LaXHeXLuX/Trimmer/releases).  
-In Blender 2.80 or later, go to *Edit → Preferences → Add-ons → Install from Disk*. Browse to the downloaded zip file, select it, and *Install from Disk*.  
+Download release 0.2.4 of Trimmer from [the github page](https://github.com/LaXHeXLuX/Trimmer/releases).  
+In Blender 4.2.0 or later, go to *Edit → Preferences → Add-ons → Install from Disk*. Browse to the downloaded zip file, select it, and *Install from Disk*.  
 The add-on can now be found in the add-ons list, where it can be enabled, disabled, or uninstalled.
 
 ## Preliminary work
