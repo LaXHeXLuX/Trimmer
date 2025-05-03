@@ -415,26 +415,26 @@ def testUnwrapping():
 
 # metadata matches
 
-def get_bl_info_from_init():
+def initInfo():
     from src import bl_info
     return bl_info
 
-def get_manifest_info(path):
+def manifestInfo(path):
     import toml
     with open(path, encoding="utf-8") as f:
         return toml.load(f)
 
+def tupleFromToml(tomlInfo):
+    return tuple(int(digit) for digit in tomlInfo.split("."))
+
 def testMetadataMatching():
-    bl_info = get_bl_info_from_init()
-    manifest = get_manifest_info("src/blender_manifest.toml")
+    bl_info = initInfo()
+    manifest = manifestInfo("src/blender_manifest.toml")
 
     test(None, bl_info["name"], manifest["name"])
     test(None, bl_info["author"], manifest["maintainer"])
     test(None, bl_info["version"], tupleFromToml(manifest["version"]))
     test(None, bl_info["blender"], tupleFromToml(manifest["blender_version_min"]))
-
-def tupleFromToml(tomlVersion):
-    return tuple(int(digit) for digit in tomlVersion.split("."))
 
 # main
 
