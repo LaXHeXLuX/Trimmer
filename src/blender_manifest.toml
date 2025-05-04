@@ -8,6 +8,6 @@ maintainer = "Laas Hendrik Lumberg"
 type = "add-on"
 
 blender_version_min = "4.2.0"
-tags = ["UV", "User Interface"]
+tags = ["UV"]
 
 license = ['SPDX:GPL-3.0-or-later']
