@@ -13,7 +13,7 @@ def _get_registration_data():
     from . import ui
     from . import trimmer
 
-    classes1 = [trimmer.UVCoord, trimmer.Trim, ui.AbstractOperator, ui.TrimOptions]
+    classes1 = [trimmer.UVCoord, trimmer.Trim, trimmer.Trimsheet, ui.AbstractOperator, ui.AddTrimSheetButton, ui.DeleteTrimSheetButton, ui.AddTrimButton, ui.DeleteTrimButton, ui.ApplyTrimButton, ui.TrimOptions]
     classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings]
 
     return bpy, trimmer, ui, classes1, classes2
@@ -24,7 +24,7 @@ def register():
     for c in classes1:
         bpy.utils.register_class(c)
         
-    bpy.types.Scene.trim_collection = bpy.props.CollectionProperty(type=trimmer.Trim)
+    bpy.types.Scene.trimsheet_collection = bpy.props.CollectionProperty(type=trimmer.Trimsheet)
     bpy.types.Scene.trim_options = bpy.props.PointerProperty(type=ui.TrimOptions)
 
     for c in classes2:
@@ -37,7 +37,7 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     del bpy.types.Scene.trim_options
-    del bpy.types.Scene.trim_collection
+    del bpy.types.Scene.trimsheet_collection
 
 if __name__ == "__main__":
     register()

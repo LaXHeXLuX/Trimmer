@@ -125,7 +125,7 @@ class Trimmer():
         bmesh.update_edit_mesh(obj.data)
 
     @classmethod
-    def add_trim(cls, context):
+    def add_trim(cls, context, trimsheet_index):
         obj = cls.getObject(context)
         bm = cls.getNewBm(obj)
         uvLayer = cls.getUvLayer(bm)
@@ -138,8 +138,15 @@ class Trimmer():
 
         uvCoords = cls.uvCoordsFromFaces(face, uvLayer, single=True)
         uvCoords = compactPoints(uvCoords)
-        trim = context.scene.trim_collection.add()
-        trim.init(uvCoords, len(context.scene.trim_collection))
+        trimsheet = context.scene.trimsheet_collection[trimsheet_index]
+        trim = trimsheet.trims.add()
+        trim.init(uvCoords, len(trimsheet.trims))
+
+    @classmethod
+    def add_trimsheet(cls, context):
+        trimsheets = context.scene.trimsheet_collection
+        trimsheet = trimsheets.add()
+        trimsheet.init(len(trimsheets))
 
     @classmethod
     def mirror_trim(cls, context):
@@ -248,3 +255,13 @@ class Trim(bpy.types.PropertyGroup):
             mesh.append([loop.vert.co[:] for loop in face.loops])
 
         return mesh
+    
+class Trimsheet(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty() # type: ignore
+    trims: bpy.props.CollectionProperty(type=Trim) # type: ignore
+
+    def init(self, index):
+        self.name = f"Trimsheet {index}"
+
+    def __init__(self, index=1):
+        self.init(index)
