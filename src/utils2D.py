@@ -287,6 +287,17 @@ def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = T
 
     return scaleTransformMatrix(scale, scale, innerPolygonOrigin, outerPolygonOrigin)
 
+def stretchMatrix(innerPolygons, outerPolygon):
+    innerPolygonCoords = minMaxCoordsPolygons(innerPolygons)
+    outerPolygonCoords = minMaxCoords(outerPolygon)
+
+    scaleX, scaleY = relativeScale(innerPolygonCoords, outerPolygonCoords)
+
+    innerPolygonOrigin = innerPolygonCoords[0:2]
+    outerPolygonOrigin = outerPolygonCoords[0:2]
+
+    return scaleTransformMatrix(scaleX, scaleY, innerPolygonOrigin, outerPolygonOrigin)
+
 def transformPolygons(polygons, matrix):
     paddedPolygons = padPoints(polygons, len(matrix[0]))
     newPolygons = []
@@ -302,6 +313,13 @@ def containedPolygons(innerPolygons, outerPolygon, boundByX = True, boundByY = T
 
 def containedPolygon(innerPolygon, outerPolygon, boundByX = True, boundByY = True):
     return containedPolygons([innerPolygon], outerPolygon, boundByX, boundByY)[0]
+
+def stretchedPolygons(innerPolygons, outerPolygon):
+    matrix = stretchMatrix(innerPolygons, outerPolygon)
+    return roundList(deepToList(transformPolygons(innerPolygons, matrix)))
+
+def stretchedPolygon(innerPolygon, outerPolygon):
+    return stretchedPolygons([innerPolygon], outerPolygon)[0]
 
 # Mirror points
 
