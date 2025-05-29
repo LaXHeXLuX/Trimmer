@@ -103,7 +103,6 @@ def deepToList(arr):
         return arr
 
 def roundList(arr):
-    newArr = []
     try:
         return [roundList(a) for a in arr]
     except TypeError:
