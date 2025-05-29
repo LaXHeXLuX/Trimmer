@@ -244,6 +244,14 @@ def minMaxCoordsPolygons(polygons):
 
     return [minX, minY, maxX, maxY]
 
+def relativeScale(innerCoords, outerCoords):
+    innerDistanceX = innerCoords[2] - innerCoords[0]
+    innerDistanceY = innerCoords[3] - innerCoords[1]
+    outerDistanceX = outerCoords[2] - outerCoords[0]
+    outerDistanceY = outerCoords[3] - outerCoords[1]
+
+    return [outerDistanceX / innerDistanceX, outerDistanceY / innerDistanceY]
+
 def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = True):
     if not boundByX and not boundByY:
         raise Exception("Cannot contain without bounds!")
@@ -251,18 +259,14 @@ def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = T
     innerPolygonCoords = minMaxCoordsPolygons(innerPolygons)
     outerPolygonCoords = minMaxCoords(outerPolygon)
 
-    innerDistanceX = innerPolygonCoords[2] - innerPolygonCoords[0]
-    innerDistanceY = innerPolygonCoords[3] - innerPolygonCoords[1]
-    outerDistanceX = outerPolygonCoords[2] - outerPolygonCoords[0]
-    outerDistanceY = outerPolygonCoords[3] - outerPolygonCoords[1]
+    scaleX, scaleY = relativeScale(innerPolygonCoords, outerPolygonCoords)
 
-    innerWidthRatio = innerDistanceX / innerDistanceY
-    outerWidthRatio = outerDistanceX / outerDistanceY
-
-    if not boundByX or (boundByY and innerWidthRatio < outerWidthRatio):
-        scale = outerDistanceY / innerDistanceY
+    if not boundByX:
+        scale = scaleY
+    elif not boundByY:
+        scale = scaleX
     else:
-        scale = outerDistanceX / innerDistanceX
+        scale = min(scaleX, scaleY)
 
     S = np.array([
         [scale, 0],
