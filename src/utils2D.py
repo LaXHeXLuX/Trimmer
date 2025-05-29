@@ -252,6 +252,20 @@ def relativeScale(innerCoords, outerCoords):
 
     return [outerDistanceX / innerDistanceX, outerDistanceY / innerDistanceY]
 
+def scaleTransformMatrix(scaleX, scaleY, innerOrigin, outerOrigin):
+    S = np.array([
+        [scaleX, 0],
+        [0,  scaleY]
+    ])
+    
+    scaledOrigin = S @ innerOrigin
+
+    T = np.eye(3)
+    T[:2, :2] = S
+    T[:2, 2] = outerOrigin[0] - scaledOrigin[0], outerOrigin[1] - scaledOrigin[1]
+
+    return T
+
 def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = True):
     if not boundByX and not boundByY:
         raise Exception("Cannot contain without bounds!")
@@ -268,18 +282,10 @@ def containmentMatrix(innerPolygons, outerPolygon, boundByX = True, boundByY = T
     else:
         scale = min(scaleX, scaleY)
 
-    S = np.array([
-        [scale, 0],
-        [0,  scale]
-    ])
+    innerPolygonOrigin = innerPolygonCoords[0:2]
+    outerPolygonOrigin = outerPolygonCoords[0:2]
 
-    scaledOrigin = S @ innerPolygonCoords[0:2]
-
-    T = np.eye(3)
-    T[:2, :2] = S
-    T[:2, 2] = outerPolygonCoords[0] - scaledOrigin[0], outerPolygonCoords[1] - scaledOrigin[1]
-
-    return T
+    return scaleTransformMatrix(scale, scale, innerPolygonOrigin, outerPolygonOrigin)
 
 def transformPolygons(polygons, matrix):
     paddedPolygons = padPoints(polygons, len(matrix[0]))
