@@ -205,7 +205,7 @@ def applyMvcWeights(polygon, weights):
     if not hasattr(weights[0], '__iter__'):
         return applyMvcWeight(polygon, weights)
 
-    newPositions = []    
+    newPositions = []
     for i in range(len(weights)):
         newPositions.append(applyMvcWeights(polygon, weights[i]))
     
