@@ -1,5 +1,5 @@
 from src.utils import add, subtract, multiply, applyMatrix, compare, roundList, pointIsCollinear, compactPoints, padPoints
-from src.utils2D import boundaryVertices, mvcWeights, applyMvcWeights, containedPolygon, containedPolygons, mirrorPoints, rotatePointsFill, rotatePointsFit
+from src.utils2D import boundaryVertices, mvcWeights, applyMvcWeights, containedPolygon, containedPolygons, stretchedPolygon, stretchedPolygons, mirrorPoints, rotatePointsFill, rotatePointsFit
 from src.multiple_face_unwrap import unwrap, UnwrapException
 
 # Testing utilities
@@ -206,6 +206,7 @@ def runMVCTest():
     )
 
 def runPolygonContainmentTest():
+    # contain
     test(
         containedPolygon,
         [unitSquare, unitSquare],
@@ -236,6 +237,27 @@ def runPolygonContainmentTest():
         [[unitSquare], [[0, 0], [5, 0], [5, 1], [0, 1]], True, False],
         [[[0, 0], [0, 5], [5, 5], [5, 0]]]
     )
+
+    # stretch
+    test(
+        stretchedPolygon,
+        [unitSquare, unitSquare],
+        unitSquare
+    )
+    test(
+        stretchedPolygon,
+        [unitSquare, [(0, 0), (0, 2), (2, 2), (2, 0)]],
+        [(0, 0), (0, 2), (2, 2), (2, 0)]
+    )
+    test(
+        stretchedPolygon,
+        [[(3, 0), (3, 3), (6, 3), (6, 0)], [(0, 0), (0, 1), (5, 1), (5, 0)]],
+        [(0, 0), (0, 1), (5, 1), (5, 0)]
+    )
+    test(
+        stretchedPolygon,
+        [[(0, 1), (1, 2), (0, 4), (3, 2), (3, 3), (4, 2), (6, 2), (5, 1), (3, 1), (2, 2), (1, 1)], [(-3, -4), (-3, 0), (0, 0), (0, -4)]],
+        [(-3, -4), (-2.5, -8/3), (-3, 0), (-1.5, -8/3), (-1.5, -4/3), (-1, -8/3), (0, -8/3), (-0.5, -4), (-1.5, -4), (-2, -8/3), (-2.5, -4)]
     )
 
 def testUtils2D():
