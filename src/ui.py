@@ -240,6 +240,45 @@ class ApplyTrimButton(bpy.types.Operator):
             self.report({'ERROR'}, str(te))
             return {'CANCELLED'}
 
+class ReorderTrimButton(bpy.types.Operator):
+    bl_idname = "trimmer.reorder_trim"
+    bl_label = ""
+
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+    trim_index: bpy.props.IntProperty() # type: ignore
+    up: bpy.props.BoolProperty() # type: ignore
+
+    def init(layout, trimsheet_index, trim_index, up):
+        icon = {
+            True: 'TRIA_UP',
+            False: 'TRIA_DOWN'
+        }
+
+        reorder_trim_button = layout.operator("trimmer.reorder_trim", text=None, icon=icon[up])
+        reorder_trim_button.trimsheet_index = trimsheet_index
+        reorder_trim_button.trim_index = trim_index
+        reorder_trim_button.up = up
+
+        return reorder_trim_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        description = {
+            True: "Move the trim up",
+            False: "Move the trim down"
+        }
+
+        return description[properties.up]
+    
+    def execute(self, context):
+        try:
+            trimsheet = context.scene.trimsheet_collection[self.trimsheet_index]
+            trimsheet.moveTrim(self.trim_index, up=self.up)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
 class AddTrimSheetButton(bpy.types.Operator):
     bl_idname = "trimmer.add_trimsheet"
     bl_label = ""
