@@ -13,7 +13,7 @@ def _get_registration_data():
     from . import ui
     from . import trimmer
 
-    classes1 = [trimmer.UVCoord, trimmer.Trim, trimmer.Trimsheet, ui.AbstractOperator, ui.AddTrimSheetButton, ui.DeleteTrimSheetButton, ui.AddTrimButton, ui.DeleteTrimButton, ui.ApplyTrimButton, ui.TrimOptions]
+    classes1 = [trimmer.UVCoord, trimmer.Trim, trimmer.Trimsheet, ui.AbstractOperator, ui.AddTrimSheetButton, ui.DeleteTrimSheetButton, ui.AddTrimButton, ui.DeleteTrimButton, ui.ReorderTrimButton, ui.ApplyTrimButton, ui.TrimOptions]
     classes2 = [ui.TrimmerUI, ui.ApplyTrimSettings]
 
     return bpy, trimmer, ui, classes1, classes2
