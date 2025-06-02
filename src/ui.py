@@ -20,25 +20,36 @@ class TrimmerUI(bpy.types.Panel):
             row.label(text="Trimsheets:")
 
         for i in range(len(trimsheets)):
-            self.draw_trimsheet(i, trimsheets[i])
+            self.draw_trimsheet(layout, i, trimsheets[i])
 
         AddTrimSheetButton.init(layout)
 
-    def draw_trimsheet(self, header, body, index, trimsheet):
-        header, body = self.layout.panel("Trimsheet " + str(i))
-        row = header.row()
+    def draw_trimsheet(self, layout, index, trimsheet):
+        box = layout.box()
+        row = box.row()
+        row.label(text="Trimsheet:")
         row.prop(trimsheet, "name", text="")
         DeleteTrimSheetButton.init(row, index)
+        box.separator()
 
         trims = trimsheet.trims
         for i in range(len(trims)):
-            row = body.row()
-            row.prop(trims[i], "name", text="")
-            
-            ApplyTrimButton.init(row, index, i)
-            DeleteTrimButton.init(row, index, i)
+            self.draw_trim(box, index, i, trims)
 
-        AddTrimButton.init(body, index)
+        AddTrimButton.init(box, index)
+
+    def draw_trim(self, layout, index, i, trims):
+        row = layout.row()
+        row.prop(trims[i], "name", text="")
+        
+        ApplyTrimButton.init(row, index, i)
+
+        innerRow = row.row(align=True)
+        ReorderTrimButton.init(innerRow, index, i, up=True)
+        ReorderTrimButton.init(innerRow, index, i, up=False)
+
+        DeleteTrimButton.init(row, index, i)
+
 
     @classmethod
     def delete_trim(cls, context, trimsheet_index, trim_index):
