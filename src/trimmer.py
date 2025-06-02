@@ -260,8 +260,18 @@ class Trimsheet(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty() # type: ignore
     trims: bpy.props.CollectionProperty(type=Trim) # type: ignore
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def init(self, index):
         self.name = f"Trimsheet {index}"
 
-    def __init__(self, index=1):
-        self.init(index)
+    def moveTrim(self, index, up=True):
+        if up:
+            if index <= 0:
+                return
+            self.trims.move(index, index - 1)
+        else:
+            if index >= len(self.trims) - 1:
+                return
+            self.trims.move(index, index + 1)
