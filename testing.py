@@ -435,6 +435,7 @@ def testMetadataMatching():
     test(None, bl_info["author"], manifest["maintainer"])
     test(None, bl_info["version"], tupleFromToml(manifest["version"]))
     test(None, bl_info["blender"], tupleFromToml(manifest["blender_version_min"]))
+    test(None, "trimmer", manifest["id"])
 
 # main
 
@@ -443,7 +444,6 @@ def runTests():
     testUtils2D()
     testUnwrapping()
 
-    testMetadataMatching()
-
 if __name__ == '__main__':
     runTests()
+    testMetadataMatching()

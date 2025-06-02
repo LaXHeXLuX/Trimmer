@@ -189,12 +189,12 @@ class Trim(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty() # type: ignore
     uvCoords: bpy.props.CollectionProperty(type=UVCoord) # type: ignore
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def init(self, uvCoords, index):
         self.name = f"Trim {index}"
         self.setUvCoords(compactPoints(uvCoords))
-
-    def __init__(self, uvCoords, index=1):
-        self.init(uvCoords, index)
 
     def setUvCoords(self, uvCoords):
         self.uvCoords.clear()
