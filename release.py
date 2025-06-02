@@ -15,9 +15,6 @@ def release(zip_name, test = True):
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, dirs, files in os.walk(folder_path):
                 for file in files:
-                    if file.split(".")[-1] == "toml" and test:
-                        continue
-
                     file_path = os.path.join(root, file)
                     arcname = os.path.relpath(file_path, folder_path)
                     z.write(file_path, arcname)
