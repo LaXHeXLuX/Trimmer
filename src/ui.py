@@ -50,13 +50,13 @@ class TrimmerUI(bpy.types.Panel):
         DeleteTrimButton.init(row, index, i)
 
 
-    @classmethod
-    def delete_trim(cls, context, trimsheet_index, trim_index):
+    @staticmethod
+    def delete_trim(context, trimsheet_index, trim_index):
         trimsheets = context.scene.trimsheet_collection 
         trimsheets[trimsheet_index].trims.remove(trim_index)
 
-    @classmethod
-    def delete_trimsheet(cls, context, trimsheet_index):
+    @staticmethod
+    def delete_trimsheet(context, trimsheet_index):
         context.scene.trimsheet_collection.remove(trimsheet_index)
 
 class TrimOptions(bpy.types.PropertyGroup):
