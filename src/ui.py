@@ -13,7 +13,6 @@ class TrimmerUI(bpy.types.Panel):
 
         trimsheets = context.scene.trimsheet_collection
         row = layout.row()
-        row.label(text="Time is 22:45")
 
         if len(trimsheets) > 0:
             row = layout.row()
