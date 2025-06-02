@@ -444,7 +444,6 @@ def runTests():
     testUtils2D()
     testUnwrapping()
 
-    testMetadataMatching()
-
 if __name__ == '__main__':
     runTests()
+    testMetadataMatching()

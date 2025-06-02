@@ -1,10 +1,12 @@
 import sys
 import zipfile
 import os
-from testing import runTests
+from testing import runTests, testMetadataMatching
 
-def release(zip_name):
+def release(zip_name, test = True):
     runTests()
+    if not test:
+        testMetadataMatching()
 
     folder_path = "src"
     zip_path = f"{zip_name}.zip"
@@ -13,6 +15,9 @@ def release(zip_name):
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, dirs, files in os.walk(folder_path):
                 for file in files:
+                    if file.split(".")[-1] == "toml" and test:
+                        continue
+
                     file_path = os.path.join(root, file)
                     arcname = os.path.relpath(file_path, folder_path)
                     z.write(file_path, arcname)
@@ -26,4 +31,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     zip_name = sys.argv[1]
-    release(zip_name)
+    test = False
+    if len(sys.argv) >= 3:
+        test = sys.argv[2] in ['-T', '-t']
+    release(zip_name, test)
