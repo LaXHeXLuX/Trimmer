@@ -49,12 +49,6 @@ class TrimmerUI(bpy.types.Panel):
 
         DeleteTrimButton.init(row, index, i)
 
-
-    @staticmethod
-    def delete_trim(context, trimsheet_index, trim_index):
-        trimsheets = context.scene.trimsheet_collection 
-        trimsheets[trimsheet_index].trims.remove(trim_index)
-
     @staticmethod
     def delete_trimsheet(context, trimsheet_index):
         context.scene.trimsheet_collection.remove(trimsheet_index)
@@ -217,7 +211,8 @@ class DeleteTrimButton(bpy.types.Operator):
     
     def execute(self, context):
         try:
-            TrimmerUI.delete_trim(context, self.trimsheet_index, self.trim_index)
+            trimsheet = context.scene.trimsheet_collection[self.trimsheet_index]
+            trimsheet.deleteTrim(self.trim_index)
             return {'FINISHED'}
         except TrimmerException as te:
             self.report({'ERROR'}, str(te))

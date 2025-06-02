@@ -139,8 +139,7 @@ class Trimmer():
         uvCoords = cls.uvCoordsFromFaces(face, uvLayer, single=True)
         uvCoords = compactPoints(uvCoords)
         trimsheet = context.scene.trimsheet_collection[trimsheet_index]
-        trim = trimsheet.trims.add()
-        trim.init(uvCoords, len(trimsheet.trims))
+        trimsheet.addTrim(uvCoords)
 
     @classmethod
     def add_trimsheet(cls, context):
@@ -265,6 +264,13 @@ class Trimsheet(bpy.types.PropertyGroup):
 
     def init(self, index):
         self.name = f"Trimsheet {index}"
+
+    def addTrim(self, uvCoords):
+        trim = self.trims.add()
+        trim.init(uvCoords, len(self.trims))
+
+    def deleteTrim(self, index):
+        self.trims.remove(index)
 
     def moveTrim(self, index, up=True):
         if up:
