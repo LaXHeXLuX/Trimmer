@@ -1,5 +1,5 @@
 import bpy
-from .trimmer import Trimmer, TrimmerException
+from .trimmer import Trimmer, TrimmerException, Trimsheet
 
 class TrimmerUI(bpy.types.Panel):
     bl_label = "Trimmer"
