@@ -1,5 +1,5 @@
 import bpy
-from .trimmer import Trimmer, TrimmerException
+from .trimmer import Trimmer, TrimmerException, Trimsheet
 
 class TrimmerUI(bpy.types.Panel):
     bl_label = "Trimmer"
@@ -11,28 +11,47 @@ class TrimmerUI(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        trims = context.scene.trim_collection
+        trimsheets = context.scene.trimsheet_collection
+        row = layout.row()
 
-        if len(trims) > 0:
+        if len(trimsheets) > 0:
             row = layout.row()
-            row.label(text="Trims:")
+            row.label(text="Trimsheets:")
 
+        for i in range(len(trimsheets)):
+            self.draw_trimsheet(layout, i, trimsheets[i])
+
+        AddTrimSheetButton.init(layout)
+
+    def draw_trimsheet(self, layout, index, trimsheet):
+        box = layout.box()
+        row = box.row()
+        row.label(text="Trimsheet:")
+        row.prop(trimsheet, "name", text="")
+        DeleteTrimSheetButton.init(row, index)
+        box.separator()
+
+        trims = trimsheet.trims
         for i in range(len(trims)):
-            row = layout.row()
-            row.prop(trims[i], "name", text="")
-            
-            AbstractOperator.init(row, 'APPLY_TEXTURE', index=i)
-            AbstractOperator.init(row, 'DELETE_TRIM', index=i)
+            self.draw_trim(box, index, i, trims)
 
-        AbstractOperator.init(layout, 'ADD_TRIM')
+        AddTrimButton.init(box, index)
 
-    @classmethod
-    def deleteTrim(cls, context, index):
-        trims = context.scene.trim_collection
-        if 0 <= index < len(trims):
-            trims.remove(index)
-        else:
-            raise IndexError(f"Index {index} is out of range for the trim collection (length {len(trims)}).")
+    def draw_trim(self, layout, index, i, trims):
+        row = layout.row()
+        row.prop(trims[i], "name", text="")
+        
+        ApplyTrimButton.init(row, index, i)
+
+        innerRow = row.row(align=True)
+        ReorderTrimButton.init(innerRow, index, i, up=True)
+        ReorderTrimButton.init(innerRow, index, i, up=False)
+
+        DeleteTrimButton.init(row, index, i)
+
+    @staticmethod
+    def delete_trimsheet(context, trimsheet_index):
+        context.scene.trimsheet_collection.remove(trimsheet_index)
 
 class TrimOptions(bpy.types.PropertyGroup):
     items = [
@@ -104,7 +123,11 @@ class ApplyTrimSettings(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return len(context.scene.trim_collection) > 0
+        trimsheets = context.scene.trimsheet_collection
+        for trimsheet in trimsheets:
+            if len(trimsheet.trims) > 0:
+                return True
+        return False
     
     def drawFitOption(self, context):
         layout = self.layout
@@ -145,41 +168,196 @@ class ApplyTrimSettings(bpy.types.Panel):
         bpy.context.scene.trim_options.clear()
         Trimmer.clear()
 
+class AddTrimButton(bpy.types.Operator):
+    bl_idname = "trimmer.add_trim"
+    bl_label = ""
+
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+
+    def init(layout, index=None):
+        add_trim_button = layout.operator("trimmer.add_trim", text="Add trim", icon='NONE')
+        add_trim_button.trimsheet_index = index
+
+        return add_trim_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        return "Add a new trim"
+    
+    def execute(self, context):
+        try:
+            Trimmer.add_trim(context, self.trimsheet_index)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
+class DeleteTrimButton(bpy.types.Operator):
+    bl_idname = "trimmer.delete_trim"
+    bl_label = ""
+
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+    trim_index: bpy.props.IntProperty() # type: ignore
+
+    def init(layout, trimsheet_index, trim_index):
+        delete_trim_button = layout.operator("trimmer.delete_trim", text=None, icon='X')
+        delete_trim_button.trimsheet_index = trimsheet_index
+        delete_trim_button.trim_index = trim_index
+
+        return delete_trim_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        return "Delete the trim"
+    
+    def execute(self, context):
+        try:
+            trimsheet = context.scene.trimsheet_collection[self.trimsheet_index]
+            trimsheet.deleteTrim(self.trim_index)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
+class ApplyTrimButton(bpy.types.Operator):
+    bl_idname = "trimmer.apply_trim"
+    bl_label = ""
+
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+    trim_index: bpy.props.IntProperty() # type: ignore
+
+    def init(layout, trimsheet_index, trim_index):
+        apply_trim_button = layout.operator("trimmer.apply_trim", text="Apply", icon='NONE')
+        apply_trim_button.trimsheet_index = trimsheet_index
+        apply_trim_button.trim_index = trim_index
+
+        return apply_trim_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        return "Apply the texture"
+    
+    def execute(self, context):
+        try:
+            ApplyTrimSettings.confirmTrim()
+            Trimmer.apply_texture(context, context.scene.trimsheet_collection[self.trimsheet_index].trims[self.trim_index])
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
+class ReorderTrimButton(bpy.types.Operator):
+    bl_idname = "trimmer.reorder_trim"
+    bl_label = ""
+
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+    trim_index: bpy.props.IntProperty() # type: ignore
+    up: bpy.props.BoolProperty() # type: ignore
+
+    def init(layout, trimsheet_index, trim_index, up):
+        icon = {
+            True: 'TRIA_UP',
+            False: 'TRIA_DOWN'
+        }
+
+        reorder_trim_button = layout.operator("trimmer.reorder_trim", text=None, icon=icon[up])
+        reorder_trim_button.trimsheet_index = trimsheet_index
+        reorder_trim_button.trim_index = trim_index
+        reorder_trim_button.up = up
+
+        return reorder_trim_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        description = {
+            True: "Move the trim up",
+            False: "Move the trim down"
+        }
+
+        return description[properties.up]
+    
+    def execute(self, context):
+        try:
+            trimsheet = context.scene.trimsheet_collection[self.trimsheet_index]
+            trimsheet.moveTrim(self.trim_index, up=self.up)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
+class AddTrimSheetButton(bpy.types.Operator):
+    bl_idname = "trimmer.add_trimsheet"
+    bl_label = ""
+
+    def init(layout):
+        add_trimsheet_button = layout.operator("trimmer.add_trimsheet", text="Add trimsheet", icon='NONE')
+
+        return add_trimsheet_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        return "Add a new trimsheet"
+    
+    def execute(self, context):
+        try:
+            Trimmer.add_trimsheet(context)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
+class DeleteTrimSheetButton(bpy.types.Operator):
+    bl_idname = "trimmer.delete_trimsheet"
+    bl_label = ""
+    
+    trimsheet_index: bpy.props.IntProperty() # type: ignore
+
+    def init(layout, index=None):
+        delete_trimsheet_button = layout.operator("trimmer.delete_trimsheet", text=None, icon='X')
+        delete_trimsheet_button.trimsheet_index = index
+
+        return delete_trimsheet_button
+    
+    @classmethod
+    def description(cls, context, properties):
+        return "Delete the trimsheet"
+    
+    def execute(self, context):
+        try:
+            TrimmerUI.delete_trimsheet(context, self.trimsheet_index)
+            return {'FINISHED'}
+        except TrimmerException as te:
+            self.report({'ERROR'}, str(te))
+            return {'CANCELLED'}
+
 class AbstractOperator(bpy.types.Operator):
     bl_idname = "trimmer.ao"
     bl_label = ""
 
     button_action: bpy.props.StringProperty(default="TEST") # type: ignore
-    index: bpy.props.IntProperty() # type: ignore
 
     def init(layout, button_action, index=None):
         texts = {
-            'APPLY_TEXTURE': "Apply",
-            'ADD_TRIM': "Add trim",
-            'DELETE_TRIM': None,
             'MIRROR_TRIM': "Mirror",
             'ROTATE_TRIM': "Rotate",
             'ROTATE_TRIM_90': '90°',
             'CONFIRM_TRIM': "Confirm trim"
         }
         icons = {
-            'APPLY_TEXTURE': 'NONE',
-            'ADD_TRIM': 'NONE',
-            'DELETE_TRIM': 'X',
             'MIRROR_TRIM': 'MOD_MIRROR',
             'ROTATE_TRIM': 'FILE_REFRESH',
             'ROTATE_TRIM_90': 'FILE_REFRESH',
             'CONFIRM_TRIM': 'NONE'
         }
 
-        if button_action in ['APPLY_TEXTURE', 'DELETE_TRIM']:
+        if button_action in []:
             if index == None:
                 raise Exception(f"Button {button_action} needs an index!")
 
         ao_button = layout.operator("trimmer.ao", text=texts[button_action], icon=icons[button_action])
         ao_button.button_action = button_action
 
-        if button_action in ['APPLY_TEXTURE', 'DELETE_TRIM']:
+        if button_action in []:
             ao_button.index = index
 
         return ao_button
@@ -187,9 +365,6 @@ class AbstractOperator(bpy.types.Operator):
     @classmethod
     def description(cls, context, properties):
         descriptions = {
-            'APPLY_TEXTURE': "Apply the texture",
-            'ADD_TRIM': "Add a new trim",
-            'DELETE_TRIM': "Delete the trim",
             'MIRROR_TRIM': "Mirror the trim UV",
             'ROTATE_TRIM': "Rotate the trim UV",
             'ROTATE_TRIM_90': "Rotate the   UV by 90 degrees",
@@ -200,14 +375,7 @@ class AbstractOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            if self.button_action == 'APPLY_TEXTURE':
-                ApplyTrimSettings.confirmTrim()
-                Trimmer.apply_texture(context, context.scene.trim_collection[self.index])
-            elif self.button_action == 'ADD_TRIM':
-                Trimmer.add_trim(context)
-            elif self.button_action == 'DELETE_TRIM':
-                TrimmerUI.deleteTrim(context, self.index)
-            elif self.button_action == 'MIRROR_TRIM':
+            if self.button_action == 'MIRROR_TRIM':
                 Trimmer.mirror_trim(context)
             elif self.button_action == 'ROTATE_TRIM':
                 Trimmer.rotate_trim(context)
