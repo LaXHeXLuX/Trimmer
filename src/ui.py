@@ -160,7 +160,7 @@ class ApplyTrimSettings(bpy.types.Panel):
         self.drawFitOption(context)
         if Trimmer.currentApplyOption == 'FILL':
             self.drawFillSettings(context)
-        elif Trimmer.currentApplyOption in ['FIT', 'FIT_X', 'FIT_Y']:
+        elif Trimmer.currentApplyOption in ['FIT', 'FIT_X', 'FIT_Y', 'STRETCH']:
             self.drawFitSettings(context)
 
     @staticmethod

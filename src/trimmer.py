@@ -220,6 +220,8 @@ class Trim(bpy.types.PropertyGroup):
             return Trim.uvCoordsForFit(uvCoords, flatMeshCoords, boundByX=False)
         elif fitOption == 'FILL':
             return Trim.uvCoordsForFill(uvCoords, flatMeshCoords)
+        elif fitOption == 'STRETCH':
+            return Trim.uvCoordsForStretch(uvCoords, flatMeshCoords)
         else:
             raise Exception(f"Invalid fit option: {fitOption}")
 
