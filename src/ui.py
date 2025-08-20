@@ -40,6 +40,7 @@ class TrimOptions(bpy.types.PropertyGroup):
         ('FIT_X', "Fit X", "Fit inside the trim horisontally"),
         ('FIT_Y', "Fit Y", "Fit inside the trim vertically"),
         ('FIT', "Fit", "Fit inside the trim"),
+        ('STRETCH', "Stretch", "Stretch to fill the trim")
     ]
 
     updatesOff: bpy.props.BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'}) # type: ignore

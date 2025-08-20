@@ -241,6 +241,12 @@ class Trim(bpy.types.PropertyGroup):
         return containedPolygons(meshCoords, uvCoords, boundByX, boundByY)
 
     @staticmethod
+    def uvCoordsForStretch(uvCoords, meshCoords):
+        from .utils2D import stretchedPolygons
+
+        return stretchedPolygons(meshCoords, uvCoords)
+
+    @staticmethod
     def parseMeshCoordinates(faces):
         mesh = []
 
